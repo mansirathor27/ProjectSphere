@@ -9,15 +9,30 @@ import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 // Dashboard Layouts
 import DashboardLayout from "./components/layout/DashboardLayout";
 
+// Student Pages
+import StudentDashboard from "./pages/student/StudentDashboard";
+import SubmitProposal from "./pages/student/SubmitProposal";
+import UploadFiles from "./pages/student/UploadFiles";
+import SupervisorPage from "./pages/student/SupervisorPage";
+import FeedbackPage from "./pages/student/FeedbackPage";
+import NotificationsPage from "./pages/student/NotificationsPage";
 
+// Teacher Pages
+
+
+// Admin Pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageStudents from "./pages/admin/ManageStudents";
 import ManageTeachers from "./pages/admin/ManageTeachers";
-
+import AssignSupervisor from "./pages/admin/AssignSupervisor";
+import DeadlinesPage from "./pages/admin/DeadlinesPage";
+import ProjectsPage from "./pages/admin/ProjectsPage";
 import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { Loader } from "lucide-react";
 import { getUser } from "./store/slices/authSlice";
 import { getAllUsers } from "./store/slices/adminSlice";
+import { getAllProjects } from "./store/slices/adminSlice";
 
 const App = () => {
 
@@ -31,6 +46,7 @@ const App = () => {
   useEffect(()=>{
     if(authUser?.role === "Admin"){
       dispatch(getAllUsers());
+      dispatch(getAllProjects());
     }
   }, [authUser])
 
@@ -79,10 +95,30 @@ const App = () => {
         </ProtectedRoute>
       }
       >
-        
+        <Route index element={<AdminDashboard/>}/>
         <Route path="students" element={<ManageStudents/>}/>
+        <Route path="upload-files" element={<UploadFiles/>}/>
+        <Route path="supervisor" element={<SupervisorPage/>}/>
+        <Route path="feedback" element={<FeedbackPage/>}/>
+        <Route path="notifications" element={<NotificationsPage/>}/>
         <Route path="teachers" element={<ManageTeachers/>}/>
+      </Route>
+
+      {/* Student Routes */}
+      <Route path="/student" element={
+        <ProtectedRoute allowedRoles={["Student"]}>
+          <DashboardLayout userRole={"Student"}/>
+        </ProtectedRoute>
+      }
+      >
+        <Route index element={<StudentDashboard/>}/>
+        <Route path="submit-proposal" element={<SubmitProposal/>}/>
+        <Route path="supervisor" element={<SupervisorPage/>}/>
         
+        <Route path="assign-supervisor" element={<AssignSupervisor/>}/>
+        <Route path="deadlines" element={<DeadlinesPage/>}/>
+        <Route path="projects" element={<ProjectsPage/>}/>
+        <Route path="upload-files" element={<UploadFiles/>}/>
       </Route>
     </Routes>
     <ToastContainer theme="dark"/>
