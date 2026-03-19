@@ -14,7 +14,8 @@ export const createProject = async(projectData)=>{
 export const getProjectById = async(id) =>{
     const project = await Project.findById(id)
     .populate("student", "name email")
-    .populate("supervisor", "name email");
+    .populate("supervisor", "name email")
+    .populate("feedback.supervisorId", "name email");
     if(!project){
         throw new ErrorHandler("Project not found", 404);
     }
@@ -30,10 +31,15 @@ export const addFilesToProject= async(projectId, files) =>{
     const fileMetaData = files.map((file)=>({
         fileType: file.mimetype,
         fileUrl: file.path,
-        originName: file.originName,
+        originalName: file.originalname,
         uploadedAt: new Date(),
     }));
     project.files.push(...fileMetaData)
-    await Project.save();
+    await project.save();
     return project;
 };
+
+export const getAllProjects = async() =>{
+    const projects = await Project.find();
+    return projects;
+}

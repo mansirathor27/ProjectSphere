@@ -18,13 +18,19 @@ export const isAuthenticated = asyncHandler(async (req, res, next) =>{
     next();
 });
 
-export const isAuthorized = (...roles) =>{
-    return (req, res, next)=>{
-        if(!roles.includes(req.user.role)){
-            return next(new ErrorHandler(
-                `Role ${req.user.role} is not allowed to access this resource`,403
-            ));
-        }
-        next();
-    }; 
+export const isAuthorized = (...roles) => {
+  return (req, res, next) => {
+    const userRole = req.user?.role?.toLowerCase();
+
+    const allowed = roles.map(r => r.toLowerCase());
+
+    if (!allowed.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden",
+      });
+    }
+
+    next();
+  };
 };

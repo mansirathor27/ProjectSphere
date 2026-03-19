@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const supervisorRequestSchema = new mongoose.Schema({
-    name: {
+    student: {   // 🔥 FIXED (was name)
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: [true, "Student ID is required"],
@@ -19,6 +19,7 @@ const supervisorRequestSchema = new mongoose.Schema({
         trim: true,
         maxLength: [250, "Message cannot be more than 250 characters"],
     },
+
     status: {
         type: String, 
         default: "pending",
@@ -28,7 +29,7 @@ const supervisorRequestSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-// Indexing for better query performance
+// ✅ Now indexes will work
 supervisorRequestSchema.index({student: 1});
 supervisorRequestSchema.index({supervisor: 1});
 supervisorRequestSchema.index({status: 1});
