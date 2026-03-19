@@ -7,6 +7,7 @@ export const login = createAsyncThunk("login",async (data, thunkAPI) => {
     const res = await axiosInstance.post("/auth/login",data,{
       headers: {"Content-Type": "application/json"},
     }); 
+    localStorage.setItem("token", res.data.token);
     toast.success(res.data.message);
     return res.data.user;
   } catch (error) {

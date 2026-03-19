@@ -54,6 +54,7 @@ export const requestSupervisor = createAsyncThunk("student/requestSupervisor", a
   try {
     const res = await axiosInstance.post("/student/request-supervisor", data);
     thunkAPI.dispatch(getSupervisor());
+    toast.success(res.data.message);
     return res.data.data?.request;
   } catch (error) {
     toast.error(error.response.data.message || "Failed to request supervisor");
@@ -105,20 +106,46 @@ export const getFeedback = createAsyncThunk("getFeedback",
   }
 );
 
-export const downloadFile = createAsyncThunk("downloadfile", async({projectId, fileId}, thunkAPI) =>{
-  try {
-    const res = await axiosInstance.get(`/student/download/${projectId}/${fileId}`,
-      {
-        responseType: "blob",
-      }
-    );
-    return {blob: res.data, projectId, fileId};
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Failed to download file");
-    return thunkAPI.rejectWithValue(error.response?.data?.message);
-  }
-});
+export const downloadFile = createAsyncThunk(
+  "downloadfile",
+  async ({ projectId, fileId, fileName }, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("token");
 
+      const res = await axiosInstance.get(
+        `/student/download/${projectId}/${fileId}`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // ✅ correct blob type
+      const blob = new Blob([res.data], {
+        type: res.data.type,
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.setAttribute("download", fileName); // 🔥 FIX
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Download failed");
+      return thunkAPI.rejectWithValue(error.response?.data?.message);
+    }
+  }
+);
 const studentSlice = createSlice({
   name: "student",
   initialState: {
@@ -138,6 +165,7 @@ const studentSlice = createSlice({
     });
     builder.addCase(fetchProject.fulfilled, (state, action)=>{
       state.project = action.payload?.project || action.payload || null;
+      state.files = action.payload?.files || [];
     });
     builder.addCase(getSupervisor.fulfilled, (state, action)=>{
       state.supervisor = action.payload?.supervisor || action.payload || null;

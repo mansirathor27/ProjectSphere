@@ -11,7 +11,7 @@ const UploadFiles = () => {
   const reportRef = useRef(null);
   const presRef = useRef(null);
   const codeRef = useRef(null);
-  const code = useRef(null);
+  // const code = useRef(null);
 
   useEffect(()=>{
     if(!project){
@@ -59,21 +59,15 @@ const UploadFiles = () => {
   return <Icon className={`w-8 h-8 ${color}`}/>
   };
 
-  const handleDownloadFile = async(file)=>{
-    if(!file?.projectId || !file.fileId) return;
-
-    const res = await dispatch(downloadFile({projectId: file.projectId, fileId: file.fileId}));
-    if(res.meta.requestStatus !== "fulfilled") return;
-    const url = URL.createObjectURL(res.payload.blob);
-
-    const a = Object.assign(document.createElement("a"),{
-      href: url,
-      download: file.name || "download"
-    });
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
+  const handleDownloadFile = async (file) => {
+  await dispatch(
+    downloadFile({
+      projectId: project._id,
+      fileId: file._id,
+      fileName: file.originalName, // ✅ PASS THIS
+    })
+  );
+};
   return <>
   <div className="space-y-6">
     <div className="card">
@@ -189,7 +183,7 @@ const UploadFiles = () => {
       </div>
 
       {
-        (files || []).length === 0 ?(
+        (project?.files || []).length === 0 ?(
           <div className="text-center py-4">
             <FilePlus className="w-16 h-16 text-slate-300 mx-auto mb-4"/>
             <p className="text-slate-500">No files uploaded yet</p>
@@ -197,7 +191,7 @@ const UploadFiles = () => {
         ) : (
           <div className="space-y-3">
             {
-              files.map(file => (
+              (project?.files || []).map(file => (
   <div key={file._id || file.fileUrl}
        className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
 

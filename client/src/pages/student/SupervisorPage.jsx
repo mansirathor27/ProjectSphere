@@ -45,10 +45,12 @@ const SupervisorPage = () => {
     const message= requestMessage?.trim() || `${authUser.name || "Student"} has requested 
     ${selectedSupervisor.name} to be their supervisor.`;
   
-    dispatch(requestSupervisor({teacherId: selectedSupervisor._id, message}));
-    setShowRequestModal(false);
-    setSelectedSupervisor(null);
-    setRequestMessage("");
+    dispatch(requestSupervisor({teacherId: selectedSupervisor._id, message}))
+    .then((res)=>{
+      if(res.type === "student/requestSupervisor/fulfilled") {
+        setShowRequestModal(false);
+      }
+    });
 
   };
 
