@@ -105,6 +105,33 @@ export const getAllProjects = createAsyncThunk(
       return thunkAPI.rejectWithValue(error.response?.data?.message);
     }
 });
+
+export const getDashboardStats = createAsyncThunk(
+  "getDashboardStats", 
+  async(_, thunkAPI)=>{
+    try {
+      const res = await axiosInstance.get(`/admin/fetch-dashboard-stats`);
+      return res.data.data.stats;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch admin dashboard stats");
+      return thunkAPI.rejectWithValue(error.response?.data?.message);
+    }
+});
+
+export const assignSupervisor = createAsyncThunk("assignSupervisor", 
+  async(data, thunkAPI)=>{
+    try {
+      const res = await axiosInstance.post("/admin/assign-supervisor",data);
+      toast.success(res.data.message);
+      return res.data.data;
+    } catch (error) {
+      toast.error(error.response.data.message || "Failed to assign supervisor");
+      return thunkAPI.rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
+
 const adminSlice = createSlice({
   name: "admin",
   initialState: {
@@ -150,6 +177,9 @@ const adminSlice = createSlice({
     })
     .addCase(getAllProjects.fulfilled, (state, action)=>{
       state.projects = action.payload.projects;
+    })
+    .addCase(getDashboardStats.fulfilled, (state, action)=>{
+      state.stats = action.payload;
     })
   },
 });

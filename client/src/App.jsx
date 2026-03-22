@@ -98,10 +98,11 @@ const App = () => {
         <Route index element={<AdminDashboard/>}/>
         <Route path="students" element={<ManageStudents/>}/>
         <Route path="upload-files" element={<UploadFiles/>}/>
-        <Route path="supervisor" element={<SupervisorPage/>}/>
+        <Route path="assign-supervisor" element={<AssignSupervisor/>}/>
         {/* <Route path="feedback" element={<FeedbackPage/>}/> */}
         <Route path="notifications" element={<NotificationsPage/>}/>
         <Route path="teachers" element={<ManageTeachers/>}/>
+        <Route path="deadlines" element={<DeadlinesPage/>}/>
       </Route>
 
       {/* Student Routes */}
@@ -114,8 +115,6 @@ const App = () => {
         <Route index element={<StudentDashboard/>}/>
         <Route path="submit-proposal" element={<SubmitProposal/>}/>
         <Route path="supervisor" element={<SupervisorPage/>}/>
-        
-        <Route path="assign-supervisor" element={<AssignSupervisor/>}/>
         <Route path="deadlines" element={<DeadlinesPage/>}/>
         <Route path="projects" element={<ProjectsPage/>}/>
         <Route path="upload-files" element={<UploadFiles/>}/>

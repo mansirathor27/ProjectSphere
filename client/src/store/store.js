@@ -4,7 +4,8 @@ import popupReducer from "./slices/popupSlice";
 import adminReducer from "./slices/adminSlice";
 import notificationReducer from "./slices/notificationSlice";
 import studentReducer from "./slices/studentSlice";
-
+import projectReducer from "./slices/projectSlice";
+import deadlineReducer from "./slices/deadlineSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     admin: adminReducer,
     notification: notificationReducer,
     student: studentReducer,
-
+    project: projectReducer,
+    deadline: deadlineReducer,
   },
 });
