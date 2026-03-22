@@ -3,6 +3,9 @@ import ErrorHandler from "../middlewares/error.js";
 import { User } from "../models/user.js";
 import * as userServices from "../services/userServices.js"
 import * as projectService from "../services/projectService.js"
+import * as notificationServices from "../services/notificationServices.js"
+import { Project } from "../models/project.js";
+import { SupervisorRequest } from "../models/supervisorRequest.js";
 
 export const createStudent = asyncHandler(async (req, res, next) =>{
     const {name , email , password,department } = req.body;
@@ -129,6 +132,75 @@ export const getAllProjects = asyncHandler(async(req, res, next) => {
         data: {projects},
     });
 });
-export const assignSupervisor = asyncHandler(async(req, res, next) => {});
 
-export const getDashboardStats = asyncHandler(async(req, res, next) => {});
+export const getDashboardStats = asyncHandler(async(req, res, next) => {
+    const [ totalStudents, 
+            totalTeachers, 
+            totalProjects, 
+            pendingRequests, 
+            completedProjects, 
+            pendingProjects] = await Promise.all([
+                User.countDocuments({ role: "Student"}), 
+                User.countDocuments({role: "Teacher"}),
+                Project.countDocuments(),
+                SupervisorRequest.countDocuments({status: "pending"}),
+                Project.countDocuments({status: "completed"}),
+                Project.countDocuments({status: "pending"}),
+            ]); 
+            res.status(200).json({
+                success: true,
+                message: "Admin dashboard stats fetched",
+                data: {
+                    stats: {
+                        totalStudents, 
+                        totalTeachers, 
+                        totalProjects, 
+                        pendingRequests, 
+                        completedProjects, 
+                        pendingProjects,
+                    },
+                },
+        });
+});
+
+export const assignSupervisor = asyncHandler(async(req, res, next)=>{
+    const { studentId, supervisorId} = req.body;
+    if(!studentId, supervisorId){
+        return next(new ErrorHandler("Student ID and Supervisor ID are required", 400));
+    }
+
+    const project = await Project.fidOne({student: studentId});
+    if(!project){
+        return next(new ErrorHandler("Project not found.", 404));
+    }
+    if(project.supervisor !== null){
+        return next(new ErrorHandler("Supervisor alreasy assigned", 400));
+    }
+    if(project.status !== "approved"){
+        return next(new ErrorHandler("Project not approved yet.", 400));
+    }else if(project.status === "pending" || project.status === "rejected"){
+        return next(new ErrorHandler("Project is in pending state or rejected.", 400));
+    }
+
+    const {student, supervisor} = await userServices.assignSupervisorDirectly(studentId, supervisorId);
+    project.supervisor = supervisor;
+    await project.save();
+
+    await notificationServices.notifyUser(studentId, `You have been assigned a supervisor ${supervisor.name}`,
+        "approval",
+        "/students/status",
+        "low"
+    );
+    await notificationServices.notifyUser(supervisorId, `The student ${student.name} has been officially
+        assigned to you for FYP supervision.` ,
+        "general",
+        "/teachers/status",
+        "low"
+     );
+
+     res.status(200).json({
+        success: true,
+        message: "Supervisor assigned successfully",
+        data: {student, supervisor},
+     });
+});
