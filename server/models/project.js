@@ -6,7 +6,7 @@ const feedbackSchema = new mongoose.Schema({
             required: true,
         },
         type: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: String,
             enum: ["positive", "negative", "general"],
             default: "general",
         },

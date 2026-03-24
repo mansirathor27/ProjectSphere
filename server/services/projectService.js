@@ -45,4 +45,48 @@ export const getAllProjects = async() =>{
     .populate("supervisor", "name email")
     .sort({createdAt: -1});
     return projects;
-}
+};
+
+export const markComplete = async(projectId) =>{
+    const project = await Project.findByIdAndUpdate(
+        projectId, 
+        {status: "completed"}, 
+        {new: true, runValidators: true}
+    ).populate("student", "name email")
+    .populate("supervisor", "name email");
+
+    if(!project){
+        throw new ErrorHandler("Project not found", 404);
+    }
+    return project;
+};
+
+export const addFeedback = async (projectId, supervisorId, message, title, type) => {
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+        throw new ErrorHandler("Project not found", 404);
+    }
+
+    project.feedback.push({
+        supervisorId,
+        message,
+        title,
+        type: type || "general", 
+        createdAt: new Date(),
+    });
+
+    await project.save();
+
+    const latestFeedback = project.feedback[project.feedback.length - 1];
+
+    return { project, latestFeedback };
+};
+
+
+export const getProjectBySupervisor = async (supervisorId) => {
+    return await Project.find({ supervisor: supervisorId })
+        .populate("student", "name email")
+        .populate("supervisor", "name email")
+        .sort({ createdAt: -1 });
+};

@@ -25,6 +25,10 @@ const supervisorRequestSchema = new mongoose.Schema({
         default: "pending",
         enum: ["pending", "accepted", "rejected"],
     },
+    project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Project",
+},
 }, {
     timestamps: true,
 });
