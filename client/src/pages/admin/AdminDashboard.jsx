@@ -8,6 +8,9 @@ import {
   CartesianGrid,
   Tooltip,
   Cell,
+  PieChart,
+  Pie,
+  Legend
 } from "recharts";
 import { axiosInstance } from "../../lib/axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,15 +19,16 @@ import AddTeacher from "../../components/modal/AddTeacher";
 import { toast } from "react-toastify";
 import { getAllProjects, getDashboardStats } from "../../store/slices/adminSlice";
 import { getNotifications } from "../../store/slices/notificationSlice";
-
-import { AlertCircle, AlertTriangle, Box, FileTextIcon, Folder, PlusIcon, User, X } from "lucide-react";
+import { toggleStudentModal, toggleTeacherModal } from "../../store/slices/popupSlice";
+import { AlertCircle, AlertTriangle, Box, FileTextIcon, Folder, PlusIcon, User, X, Settings, Bell, Search } from "lucide-react";
 
 const AdminDashboard = () => {
   
   const {isCreateStudentModalOpen, isCreateTeacherModalOpen} = useSelector((state)=> state.popup);
+  const { mode } = useSelector((state) => state.theme);
 
   const {stats, projects} = useSelector((state)=>state.admin); 
-  const {notifications} = useSelector((state)=>state.notification.list); 
+  const notifications = useSelector((state)=>state.notification.list); 
 
   const dispatch = useDispatch();
   const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
@@ -84,7 +88,7 @@ const handleDownload = async (projectId, fileId, name) => {
     link.remove();
     window.URL.revokeObjectURL(url);
 
-  } catch (error) {
+  } catch {
     toast.error("Download failed");
   }
 };
@@ -102,6 +106,35 @@ const handleDownload = async (projectId, fileId, name) => {
     arr.sort((a, b )=> b.count - a.count);
     return arr;
   },[projects]);
+
+  const projectsOverTime = useMemo(() => {
+    const map = new Map();
+    (projects || []).forEach(p => {
+      const date = new Date(p.createdAt);
+      const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+      map.set(monthYear, (map.get(monthYear) || 0) + 1);
+    });
+    // Sort by date string
+    const arr = Array.from(map.entries()).map(([date, count]) => ({ date, count }));
+    return arr.reverse().slice(0, 6).reverse(); // last 6 months
+  }, [projects]);
+
+  const projectStatusDistribution = useMemo(() => {
+    const statuses = { pending: 0, approved: 0, rejected: 0, completed: 0 };
+    (projects || []).forEach(p => {
+      if (statuses.hasOwnProperty(p.status)) {
+        statuses[p.status]++;
+      } else {
+        statuses.pending++; // default
+      }
+    });
+    return [
+      { name: "Pending", value: statuses.pending, color: "#F59E0B" },
+      { name: "Approved", value: statuses.approved, color: "#10B981" },
+      { name: "Rejected", value: statuses.rejected, color: "#EF4444" },
+      { name: "Completed", value: statuses.completed, color: "#3B82F6" },
+    ].filter(d => d.value > 0);
+  }, [projects]);
 
   const latestNotifications = useMemo(()=>
    (notifications || []).slice(0,6),
@@ -143,54 +176,63 @@ const handleDownload = async (projectId, fileId, name) => {
   };
 
   const dashboardStats = [
-      {
-        title: "Total Students",
-        value: stats?.totalStudents ?? 0,
-        bg: "bg-blue-100",
-        iconBg: "bg-blue-100",
-        iconColor: "text-blue-600",
-        Icon: User,
-      },
-
-      {
-        title: "Total Teachers",
-        value: stats?.totalTeachers ?? 0,
-        bg: "bg-green-100",
-        iconBg: "bg-green-100",
-        iconColor: "text-green-600",
-        Icon: Box,
-      },
-
-      {
-        title: "Pending Requests",
-       value: stats?.pendingRequests ?? 0,
-        bg: "bg-orange-100",
-        iconBg: "bg-orange-100",
-        iconColor: "text-orange-600",
-        Icon: AlertCircle,
-      },
-      {
+    {
+      title: "Total Students",
+      value: stats?.totalStudents ?? 0,
+      iconWrap: "bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20",
+      Icon: User,
+      trend: "+12%",
+      trendUp: true,
+    },
+    {
+      title: "Total Teachers",
+      value: stats?.totalTeachers ?? 0,
+      iconWrap: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20",
+      Icon: Box,
+      trend: "+4%",
+      trendUp: true,
+    },
+    {
+      title: "Pending Requests",
+      value: stats?.pendingRequests ?? 0,
+      iconWrap: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20",
+      Icon: AlertCircle,
+      trend: "-2%",
+      trendUp: false,
+    },
+    {
       title: "Active Projects",
       value: stats?.totalProjects ?? 0,
-      bg: "bg-yellow-100",
-      iconBg: "bg-yellow-100",
-      iconColor: "text-yellow-600",
+      iconWrap: "bg-violet-500/10 text-violet-600 dark:text-violet-400 ring-violet-500/20",
       Icon: Folder,
-      },
-      {
-        title: "Nearing Deadlines",
-        value: nearingDeadlines,
-        bg: "bg-red-100",
-        iconBg: "bg-red-100",
-        iconColor: "text-red-600",
-        Icon: AlertTriangle,
-      },
+      trend: "+24%",
+      trendUp: true,
+    },
+    {
+      title: "Completed Projects",
+      value: stats?.completedProjects ?? 0,
+      iconWrap: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 ring-cyan-500/20",
+      Icon: FileTextIcon,
+      trend: "+8%",
+      trendUp: true,
+    },
+    {
+      title: "Nearing Deadlines",
+      value: nearingDeadlines,
+      iconWrap: "bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/20",
+      Icon: AlertTriangle,
+      trend: "+5%",
+      trendUp: false, // More approaching deadlines is usually "bad/urgent"
+    },
   ];
 
   const actionButtons = [
     {
       label: "Add Student",
-      onClick: () => dispatch(toggleStudentModal()),
+      
+      onClick: () => {
+      dispatch(toggleStudentModal());
+    },
       btnClass: "btn-primary",
       Icon: PlusIcon, // lucide-react icon
     },
@@ -209,199 +251,297 @@ const handleDownload = async (projectId, fileId, name) => {
   ];
       
 
-  return <>
-  
-  <div className="space-y-6">
-    {/* header */}
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-      <h1 className="text-2xl font-bold mb-2">Admin Dashboard</h1>
-      <p className="text-blue-100">
-        Manage the entire project management system and oversee all activties.
-      </p>
-    </div>
+  return (
+    <div className="mx-auto max-w-[1600px] space-y-10 pb-10">
+      {/* Premium Header Section */}
+      <section className="relative overflow-hidden premium-card !p-10 border-none">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-600/5 to-transparent pointer-events-none" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400 text-lg font-semibold uppercase tracking-wider">
+              <Settings size={14} />
+              System Control Tower
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Admin <span className="text-blue-600">Overview</span>
+            </h1>
+            <p className="max-w-xl text-base text-slate-600 dark:text-slate-300 font-normal leading-relaxed">
+              Manage the academic ecosystem efficiently. Monitor student progress, teacher engagement, and project milestones in real-time.
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap gap-4">
+            {actionButtons.map((btn, idx) => (
+              <button
+                key={idx}
+                onClick={btn.onClick}
+                className={`${btn.btnClass} flex items-center gap-3 !px-8 !py-4 !rounded-[1.5rem] shadow-xl transition-all hover:scale-105 active:scale-95`}
+              >
+                <btn.Icon size={20} />
+                <span className="font-bold">{btn.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-    {/* stats cards */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {
-          dashboardStats.map((item, i)=>{
-            return (
-              <div key={i} className={`${item.bg} rounded-lg p-4`}>
-                <div className="flex items-center">
-                  <div className={`p-2 ${item.iconBg} rounded-lg`}>
-                    <item.Icon className={`w-6 h-6 ${item.iconColor}`}/>
-                  </div>
-
-                  <div className="ml-3">
-                    <p className={`text-sm font-medium  text-slate-600`}>{item.title}</p>
-                    <p className={`text-sm font-medium text-slate-800`}>{item.value}</p>
-                  </div>
-
+      {/* Modern KPI Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-6">
+        {dashboardStats.map((item, i) => (
+          <div
+            key={i}
+            className="dashboard-stats-card group"
+          >
+            <div className="flex flex-col h-full justify-between gap-4">
+              <div className="flex items-center justify-between">
+                <div className={`p-3 rounded-2xl ${item.iconWrap}`}>
+                  <item.Icon size={24} />
+                </div>
+                <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-lg font-semibold ${item.trendUp ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                  {item.trend}
                 </div>
               </div>
-            )
-          })
-        }
-      </div>
-
-    {/* charts and activity */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* vertical bar chart */}
-      <div className="lg:col-span-2 card">
-        <div className="card-header">
-          <h3 className="card-title">Project Distribution by Supervisor</h3>
-        </div>
-        <div className="p-4">
-          {
-            supervisorsBucket.length === 0 ? (
-              <div className="h-64 flex items-center justify-center bg-slat-50
-              rounded text-slate-500">No data</div>
-            ): (
-              <div className="h-72">
-                <ResponsiveContainer width={"100%"} height={"100%"}>
-                  <BarChart data={supervisorsBucket} 
-                  margin={{ top: 8, right: 8, bottom: 8, left: 8}}
-                  barCategoryGap={"20%"}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0"/>
-                    <XAxis dataKey={"name"} tick={{fontSize: 12, fill: "#334155"}}
-                    axisLine={{stroke: "#CBD5E1"}}
-                    tickLine={{stroke: "#CBD5E1"}} 
-                    interval={0} height={50} dy={10}/>
-                    <YAxis allowDecimals={false} tick={{fontSize: 12, fill: "#334155"}}
-                    axisLine={{stroke: "#CBD5E1"}}
-                    tickLine={{stroke: "#CBD5E1"}}/>
-                    <Tooltip  cursor={{fill: "rgba(99, 102, 241, 0.05)"}} 
-                    contentStyle={{borderRadius: 8, borderColor: "#E2E8F0",}}
-                    formatter={(value, name)=> [value, name === "count"? "Projects Assigned": name,]}
-                    labelFormatter={(label)=> `Supervisor: ${label}`} />
-                    <Bar dataKey="count" radius={[9, 8, 0,0]}/>
-                    {
-                      supervisorsBucket.map((entry, index)=>{
-                        const colors = ["#1E3A8A", "#2563EB", "#3B82F6", "#60A5FA", "#93C5FD"];
-                        return (
-                          <Cell key={`cell-${index}`} fill={colors[index % colors.length]}/>
-                        );
-                      })
-                    }
-                  </BarChart>
-
-                </ResponsiveContainer>
-              </div>
-            )
-          }
-        </div>
-      </div>
-
-
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">Recent Activity</h3>
-        </div>
-        <div className="space-y-3">
-          {
-            latestNotifications.map((n)=>{
-              return(
-                <div key={n._id} className="flex items-center text-sm">
-                  <div className={`mt-1 w-2 h-2 ${getBulletColor(
-                    n.type,
-                    n.priority
-                  )} rounded-full mr-3`}/>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-800">{n.message}</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-sm font-medium ${getBadgeClasses("type"), String(n.type)}`}>
-                        Type: {n.type}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded text-sm font-medium`}>
-                        Priority: {n.priority}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          }
-
-          {
-            latestNotifications.length === 0 && (
-              <div className="text-slate-500 text-sm">No recent notifications</div>
-            )
-          }
-        </div>
-      </div>
-    </div>
-
-    {/* quick actions */}
-    <div className="card">
-      <div className="card-header">
-          <h3 className="card-title">Quick Actions</h3>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {actionButtons.map((btn , index)=>{
-          return(
-            <button key={index}
-            className={`${btn.btnClass} flex items-center justify-center space-x-2`}
-            onClick={btn.onClick}>
-              <btn.Icon className="w-5 h-5"/>
-              <span>{btn.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-
-        {
-          isReportsModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-screen overflow-y-auto">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-slate-900">All Files</h3>
-                  <button onClick={()=> setIsReportsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                    <X className="w-5 h-5"/>
-                    </button>
-                </div>
-
-                <div className="mb-4">
-                  <input type="text" className="input w-full" placeholder="Search by file name, project title, or student name"
-                  value={reportSearch} onChange={(e)=> setReportSearch(e.target.value)}/>
-                </div>
-
-                {
-                  filteredFiles.length === 0 ? (
-                    <div className="text-slate-500">No files found.</div>
-                  ): (
-                    <div className="space-y-2">
-                      {filteredFiles.map((f, i)=>{
-                        return (
-                          <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded">
-                            <div>
-                              <div className="font-medium text-slate-800">
-                                {f.originalName}
-                              </div>
-                              <div className="text-sm text-slate-500">
-                                {f.projectTitle} - {f.studentName}
-                              </div>
-                            </div>
-
-                            <button className="btn-outline btn-small" onClick={()=>{
-                              handleDownload(f.projectId, f.fileId, f.originalName)
-                            }}>Download</button>
-
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {isCreateStudentModalOpen && <AddStudent/>}
-                  {isCreateStudentModalOpen && <AddTeacher/>}
-
+              <div>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{item.title}</p>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1 tabular-nums">{item.value}</h3>
               </div>
             </div>
-          )
-        }
-  </div>
+          </div>
+        ))}
+      </section>
 
-  </>;
+      {/* Main Analytics Hub */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Left Strategy Area (8 cols) */}
+        <div className="lg:col-span-8 space-y-8">
+          
+          {/* Project Evolution Chart */}
+          <div className="premium-card !p-0 overflow-hidden">
+            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Project Evolution</h3>
+                <p className="text-sm text-slate-500 font-medium">New registrations over last 6 months</p>
+              </div>
+              <div className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400">Monthly View</div>
+            </div>
+            <div className="p-8 bg-gradient-to-b from-transparent to-blue-50/30 dark:to-blue-900/5">
+              <div className="h-[350px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={projectsOverTime}>
+                    <defs>
+                      <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#6366F1" stopOpacity={1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={mode==='dark' ? '#1e293b' : '#f1f5f9'} />
+                    <XAxis 
+                      dataKey="date" 
+                      axisLine={false} 
+                      tickLine={false}
+                      tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false}
+                      tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}}
+                    />
+                    <Tooltip 
+                      cursor={{fill: '#f1f5f9', opacity: 0.1}}
+                      contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', background: mode==='dark'?'#0f172a':'white'}}
+                    />
+                    <Bar dataKey="count" fill="url(#colorCount)" radius={[10, 10, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
 
+          {/* Side by Side Distribution */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="premium-card">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Status Breakdown</h3>
+              <div className="h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={projectStatusDistribution}
+                      innerRadius={65}
+                      outerRadius={90}
+                      paddingAngle={8}
+                      dataKey="value"
+                    >
+                      {projectStatusDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} cornerRadius={10} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{borderRadius: '12px', border: 'none', background: '#0f172a', color: 'white'}} />
+                    <Legend verticalAlign="bottom" iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="premium-card">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Supervisor Load</h3>
+              <div className="space-y-4 max-h-[280px] overflow-y-auto pr-2 no-scrollbar">
+                {supervisorsBucket.length > 0 ? supervisorsBucket.map((s, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:scale-[1.02] transition-transform cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold">{s.name.charAt(0)}</div>
+                      <span className="font-bold text-slate-900 dark:text-white">{s.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-400 px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">{s.count} Projects</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-center py-10 text-slate-400 font-bold italic">No active supervisors</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Information Area (4 cols) */}
+        <div className="lg:col-span-4 space-y-8">
+          
+          {/* Activity Logs */}
+          <div className="premium-card space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Pulse Stream</h3>
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            </div>
+
+            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scroll">
+              {latestNotifications.length > 0 ? latestNotifications.map((n) => (
+                <div key={n._id} className="group relative pl-6 pb-6 border-l-2 border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+                  <div className={`absolute left-[-9px] top-0 w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 ${getBulletColor(n.type, n.priority)} shadow-lg scale-100 group-hover:scale-125 transition-transform`} />
+                  <div className="p-5 premium-card !p-6 !rounded-[2rem] transition-all group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/10 group-hover:-translate-y-1">
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-snug mb-3">{n.message}</p>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-medium px-2 py-1 rounded-md ${getBadgeClasses("type", n.type)}`}>{n.type}</span>
+                      <span className="text-[10px] font-bold text-slate-400">2h ago</span>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400 opacity-50">
+                  <Bell size={48} className="mb-4" />
+                  <p className="font-bold italic">Silence in the system...</p>
+                </div>
+              )}
+            </div>
+            
+            <button className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 text-sm font-bold hover:border-blue-500/50 hover:text-blue-500 transition-all">
+              View Audit History
+            </button>
+          </div>
+
+          {/* Quick System Stats */}
+          <div className="premium-card bg-gradient-to-br from-slate-900 to-indigo-950 text-white border-none">
+            <h3 className="text-lg font-bold mb-6">System Health</h3>
+            <div className="space-y-6">
+              <div>
+                <div className="flex justify-between text-xs font-medium uppercase tracking-wider mb-2 opacity-60">
+                  <span>Server Load</span>
+                  <span>Normal</span>
+                </div>
+                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full w-[24%] bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full" />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs font-medium uppercase tracking-wider mb-2 opacity-60">
+                  <span>Project Submissions</span>
+                  <span>Active</span>
+                </div>
+                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full w-[68%] bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full" />
+                </div>
+              </div>
+              <div className="pt-4 flex items-center gap-4 text-xs font-bold opacity-80 border-t border-white/5 mt-4">
+                 <button 
+                  onClick={() => toast.success("Generating platform export...")}
+                  className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all font-semibold text-[10px]"
+                 >
+                   Export PDF Audit
+                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Reports Modal (integrated lookup) */}
+      {isReportsModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-premium overflow-hidden border border-white/20">
+            <div className="px-10 py-10 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-transparent dark:from-slate-800/50">
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Knowledge Base</h3>
+                <p className="text-sm font-medium text-slate-500">Access and audit all project artifacts</p>
+              </div>
+              <button 
+                onClick={() => setIsReportsModalOpen(false)}
+                className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:scale-110 active:scale-95 transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-10 space-y-8">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                  <Search size={22} className="text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Filter by student, title or filename..."
+                  className="w-full h-16 bg-slate-50 dark:bg-slate-800/50 border-2 border-transparent rounded-2xl pl-16 pr-8 text-lg font-bold outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all"
+                  value={reportSearch}
+                  onChange={(e) => setReportSearch(e.target.value)}
+                />
+              </div>
+
+              <div className="max-h-[400px] overflow-y-auto pr-4 custom-scroll space-y-4">
+                {filteredFiles.length > 0 ? filteredFiles.map((f, i) => (
+                  <div key={i} className="flex flex-col md:flex-row items-center justify-between p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-blue-500/20 transition-all">
+                    <div className="flex items-center gap-5">
+                      <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center text-blue-600">
+                        <FileTextIcon size={28} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white truncate max-w-xs">{f.originalName}</h4>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-tighter">
+                          {f.studentName} <span className="mx-2 opacity-30">|</span> {f.projectTitle}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDownload(f.projectId, f.fileId, f.originalName)}
+                      className="mt-4 md:mt-0 px-8 py-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-black text-slate-600 dark:text-slate-300 hover:bg-slate-900 hover:text-white transition-all"
+                    >
+                      Download
+                    </button>
+                  </div>
+                )) : (
+                  <div className="text-center py-20 bg-slate-50 dark:bg-slate-800/20 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+                    <p className="text-slate-400 font-bold italic">No matching records found in the archive</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isCreateStudentModalOpen && <AddStudent />}
+      {isCreateTeacherModalOpen && <AddTeacher />}
+    </div>
+  );
 };
+
 export default AdminDashboard;
