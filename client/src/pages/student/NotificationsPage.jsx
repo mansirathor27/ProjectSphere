@@ -1,252 +1,268 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteNotification, getNotifications, markAllAsRead, markAsRead } from "../../store/slices/notificationSlice";
-import {MessageCircle, Clock5, BadgeCheck, Calendar, Settings, User, ChevronDown, AlertCircle, Clock, CheckCircle2, Bell, BellOff} from "lucide-react";
+import { 
+  deleteNotification, 
+  getNotifications, 
+  markAllAsRead, 
+  markAsRead,
+  addNotification 
+} from "../../store/slices/notificationSlice";
+import {
+  MessageCircle,
+  Clock,
+  BadgeCheck,
+  Calendar,
+  Settings,
+  User,
+  AlertCircle,
+  CheckCircle2,
+  Bell,
+  BellOff,
+  Mail,
+  Eye,
+  Trash2,
+  Inbox,
+  ArrowRight,
+  Sparkles
+} from "lucide-react";
+import { getSocket, connectSocket } from "../../lib/socket";
+import { toast } from "react-toastify";
+
 const NotificationsPage = () => {
-  
   const dispatch = useDispatch();
-  const notifications = useSelector((state)=> state.notification.list);
-  const unreadCount = useSelector((state)=> state.notification.unreadCount);
+  const notifications = useSelector((state) => state.notification.list);
+  const unreadCount = useSelector((state) => state.notification.unreadCount);
+  const { authUser } = useSelector((state) => state.auth);
 
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(getNotifications());
-  },[dispatch]);
-
-  const markAsReadHandler = (id)=> dispatch(markAsRead(id))
-  const markAllAsReadHandler = () => dispatch(markAllAsRead())
-  const deleteNotificationHandler = (id) => dispatch(deleteNotification(id))
-  
-  const getNotificationIcon = (type) =>{
-    switch(type) {
-      case "feedback":
-        return <MessageCircle className="w-6 h-6 text-blue-500"/>;
-
-      case "deadline":
-        return <Clock5 className="w-6 h-6 text-red-500"/>;
-      case "approval":
-        return <BadgeCheck className="w-6 h-6 text-green-500"/>;
-      case "meeting":
-        return <Calendar className="w-6 h-6 text-purple-500"/>;
-      case "system":
-        return <Settings className="w-6 h-6 text-gray-500"/>;
-      default: 
-        return (
-          <div className="relative w-6 h-6 text-slate-500 flex items-center justify-center">
-            <User className="w-5 h-5 absolute"/>
-            <ChevronDown className="w-4 h-4 absolute top-4"/>
-          </div>
-        );
+    
+    const socket = getSocket();
+    if (authUser) {
+      connectSocket(authUser._id);
+      
+      socket.on("new_notification", (notification) => {
+        dispatch(addNotification(notification));
+        // Optional: show a toast for high priority
+        if (notification.priority === "high") {
+          toast.warning(notification.message, { icon: "🔔" });
+        }
+      });
+      
+      return () => {
+        socket.off("new_notification");
+      };
     }
+  }, [dispatch, authUser]);
+
+  const markAsReadHandler = (id) => dispatch(markAsRead(id));
+  const markAllAsReadHandler = () => dispatch(markAllAsRead());
+  const deleteNotificationHandler = (id) => dispatch(deleteNotification(id));
+
+  const getNotificationIcon = (type) => {
+    const iconMap = {
+      feedback: { icon: MessageCircle, color: "text-blue-600", bg: "bg-blue-600/10" },
+      deadline: { icon: Clock, color: "text-rose-600", bg: "bg-rose-600/10" },
+      approval: { icon: BadgeCheck, color: "text-emerald-600", bg: "bg-emerald-600/10" },
+      meeting: { icon: Calendar, color: "text-violet-600", bg: "bg-violet-600/10" },
+      system: { icon: Settings, color: "text-slate-600", bg: "bg-slate-600/10" },
+      request: { icon: Sparkles, color: "text-amber-600", bg: "bg-amber-600/10" },
+    };
+    const defaultIcon = { icon: Bell, color: "text-blue-600", bg: "bg-blue-600/10" };
+    return iconMap[type] || defaultIcon;
   };
 
-  const getPriorityColor = (priority) => {
-    switch(priority){
-      case "high":
-        return "border-1-red-500";
-        break;
-      case "medium":
-        return "border-1-yellow-500";
-        break;
-      case "low":
-        return "border-1-green-500";
-        break;
-      default:
-        return "border-1-slate-500";
-        break;
-    }
+  const getPriorityStyles = (priority) => {
+    const styles = {
+      high: {
+        bg: "bg-rose-100 dark:bg-rose-900/30",
+        text: "text-rose-700 dark:text-rose-300",
+        dot: "bg-rose-500",
+      },
+      medium: {
+        bg: "bg-amber-100 dark:bg-amber-900/30",
+        text: "text-amber-700 dark:text-amber-300",
+        dot: "bg-amber-500",
+      },
+      low: {
+        bg: "bg-emerald-100 dark:bg-emerald-900/30",
+        text: "text-emerald-700 dark:text-emerald-300",
+        dot: "bg-emerald-500",
+      },
+    };
+    return styles[priority] || styles.low;
   };
 
-  const formatDate = (dateStr)=>{
+  const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000*60*60*24));
-    if(diffDays === 1){
-      return "yesterday";
-    }else if(diffDays <= 7){
-      return `${diffDays} days ago`
-    }else{
-      return date.toLocaleDateString();
-    }
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMinutes < 1) return "Just now";
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   const stats = [
-    {
-      title: "Total",
-      value: notifications.length,
-      bg: "bg-blue-50",
-      iconBg: "bg-blue-100",
-      textColor: "text-blue-600",
-      titleColor: "text-blue-800",
-      valueColor: "text-blue-900",
-      Icon: User,
-    },
-    {
-      title: "Unread",
-      value: unreadCount.length,
-      bg: "bg-red-50",
-      iconBg: "bg-red-100",
-      textColor: "text-red-600",
-      titleColor: "text-red-800",
-      valueColor: "text-red-900",
-      Icon: AlertCircle,
-    },
-    {
-      title: "High Priority",
-      value: notifications.filter((n)=> n.priority === "high").length,
-      bg: "bg-yellow-50",
-      iconBg: "bg-yellow-100",
-      textColor: "text-yellow-600",
-      titleColor: "text-yellow-800",
-      valueColor: "text-yellow-900",
-      Icon: Clock,
-    },
-    {
-      title: "This Week",
-      value: notifications.filter((n)=> {
-        const notifDate = new Date(n.date);
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return notifDate >= weekAgo;
-      }).length,
-      bg: "bg-green-50",
-      iconBg: "bg-green-100",
-      textColor: "text-green-600",
-      titleColor: "text-green-800",
-      valueColor: "text-green-900",
-      Icon: CheckCircle2,
-    },
+    { title: "Total Alerts", value: notifications.length, icon: Inbox, color: "blue" },
+    { title: "Unread", value: unreadCount, icon: Mail, color: "rose" },
+    { title: "Critical", value: notifications.filter((n) => n.priority === "high").length, icon: AlertCircle, color: "amber" },
+    { title: "Recent", value: notifications.filter(n => new Date(n.createdAt) > new Date(Date.now() - 86400000)).length, icon: Clock, color: "emerald" },
   ];
 
-  return <>
-  <div className="space-y-6">
-    <div className="card">
-      {/* card header */}
-      <div className="card-header">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="card-title">Notifications</h1>
-            <p className="card-subtitle">Stay updated with your project progress and deadlines</p>
+  return (
+    <div className="mx-auto max-w-6xl space-y-10 pb-10">
+      {/* Header Section */}
+      <section className="premium-card relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl -z-10 group-hover:bg-blue-600/10 transition-all duration-700" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 border border-blue-600/20 text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+              <Bell size={12} />
+              Real-time Feed
+            </div>
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">Activity Center</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl leading-relaxed">
+              Manage your project updates, team requests, and system communications in one central hub.
+            </p>
           </div>
           {unreadCount > 0 && (
-            <button className="btn-outline btn-small" 
-            onClick={markAllAsReadHandler}>
-              Mark all as read ({unreadCount})</button>
+            <button
+              onClick={markAllAsReadHandler}
+              className="px-8 py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-2xl font-bold shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+            >
+              <CheckCircle2 size={18} />
+              Refresh Dashboard
+            </button>
           )}
         </div>
+      </section>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, i) => (
+          <div key={i} className="premium-card p-6 flex items-center gap-6 hover:-translate-y-1 transition-all">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center p-3 ${
+              stat.color === "blue" ? "bg-blue-600/10 text-blue-600" :
+              stat.color === "rose" ? "bg-rose-600/10 text-rose-600" :
+              stat.color === "amber" ? "bg-amber-600/10 text-amber-600" :
+              "bg-emerald-600/10 text-emerald-600"
+            }`}>
+              <stat.icon size={28} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.title}</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* notifications stats*/}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {
-          stats.map((item, i)=>{
-            return (
-              <div key={i} className={`${item.bg} rounded-lg p-4`}>
-                <div className="flex items-center">
-                  <div className={`p-2 ${item.iconBg} rounded-lg`}>
-                    <item.Icon className={`w-5 h-5 ${item.textColor}`}/>
-                  </div>
+      {/* Notification List Area */}
+      <section className="premium-card !p-0 overflow-hidden">
+        <div className="px-10 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Recent Updates</h3>
+          <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+             <span>Showing {notifications.length} notifications</span>
+          </div>
+        </div>
 
-                  <div className="ml-3">
-                    <p className={`text-sm font-medium ${item.titleColor}`}>{item.title}</p>
-                    <p className={`text-sm font-medium ${item.valueColor}`}>{item.value}</p>
-                  </div>
+        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          {notifications.length > 0 ? (
+            notifications.map((notification) => {
+              const { icon: Icon, color, bg } = getNotificationIcon(notification.type);
+              const priority = getPriorityStyles(notification.priority);
+              const isUnread = !notification.isRead;
 
-                </div>
-              </div>
-            )
-          })
-        }
-      </div>
-
-        {/* notifications list */}
-        <div className="space-y-3">
-          {
-            notifications.map((notification)=>{
               return (
-                <div key={notification._id} className={`
-                  border border-slate-200 rounded-lg p-4 transition-all duration-200 border-1 
-                  ${getPriorityColor(notification.priority)} ${!notification.isRead 
-                    ? "bg-blue-50"
-                    : "bg-white hover:bg-slate-50"
-                  }`}>
+                <div
+                  key={notification._id}
+                  className={`group px-10 py-8 flex gap-6 transition-all relative ${
+                    isUnread ? "bg-blue-600/[0.02]" : "hover:bg-slate-50 dark:hover:bg-slate-900/40"
+                  }`}
+                >
+                  {isUnread && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-600 shadow-[2px_0_10px_rgba(37,99,235,0.4)]" />
+                  )}
+                  
+                  <div className={`w-14 h-14 shrink-0 rounded-[1.2rem] flex items-center justify-center ${bg} ${color} shadow-sm`}>
+                    <Icon size={24} />
+                  </div>
 
-                    <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0 mt-1">
-                        {getNotificationIcon(notification.type)}
-                      </div>
-
-                      <div className="flex min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className={`font-medium ${!notification.isRead ? "text-slate-900": "text-slate-700"}`}>{notification.title} {!notification.isRead && (
-                            <span className="ml-2 w-2 h-2 bg-blue-50 rounded-full inline-block"/>
-                          )}</h3>
-
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-slate-500">{formatDate(notification.createdAt)}</span>
-                            <span className={`badge capitalize ${notification.priority === "high" 
-                            ? "badge-rejected"
-                            : notification.priority === "medium" 
-                            ? "badge-pending" 
-                            : "badge-approved"}`}>
-                              {notification.priority}
-                            </span>
-                          </div>
-
+                  <div className="flex-1 min-w-0 space-y-3">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                          <h4 className={`text-lg font-bold truncate ${isUnread ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
+                            {notification.title || (notification.type ? notification.type.charAt(0).toUpperCase() + notification.type.slice(1) : "Notification")}
+                          </h4>
+                          {isUnread && (
+                            <span className="px-2 py-0.5 rounded-md bg-blue-600 text-[8px] font-bold text-white uppercase tracking-tighter">New</span>
+                          )}
                         </div>
-
-                        
-                          <p className="text-slate-600 text-sm leading-relaxed mb-3">
-                            {notification.message}
-                          </p>
-
-                          <div className="flex items-center justify-between">
-                            <span className={`badge capitalize ${notification.type === "feedback" 
-                              ? "bg-blue-100 text-blue-800" 
-                              : notification.type === "deadline" 
-                              ? "bg-red-100 text-red-800"
-                              : notification.type === "approval"
-                              ? "bg-green-100 text-green-800"
-                              : notification.type === "meeting"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-gray-100 text-gray-800"
-                            }`}>{notification.type}</span>
-
-                            <div className="flex items-center space-x-2">
-                              {!notification.isRead && (
-                                <button className="text-sm text-blue-600 hover:text-blue-500" 
-                                onClick={()=> markAsReadHandler(notification._id)}>Mark as read</button>
-                              )}
-
-                              <button className="text-sm text-red-600 hover:text-red-500" 
-                                onClick={()=> deleteNotificationHandler(notification._id)}>
-                                  Delete
-                              </button>
-                            </div>
-                          </div>
+                        <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <span className="flex items-center gap-1"><Clock size={12} /> {formatDate(notification.createdAt)}</span>
+                          <span className={`flex items-center gap-1 ${priority.text}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${priority.dot}`} />
+                            {notification.priority} priority
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isUnread && (
+                          <button
+                            onClick={() => markAsReadHandler(notification._id)}
+                            className="p-2 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all"
+                            title="Mark as Read"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteNotificationHandler(notification._id)}
+                          className="p-2 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all"
+                          title="Delete"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </div>
                     </div>
 
+                    <p className={`text-sm font-medium leading-relaxed max-w-3xl ${isUnread ? "text-slate-700 dark:text-slate-300" : "text-slate-500 dark:text-slate-400"}`}>
+                      {notification.message}
+                    </p>
+
+                    {notification.link && (
+                      <button className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 group/link">
+                        View Details <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
+                      </button>
+                    )}
                   </div>
+                </div>
               );
             })
-          }
-        </div>
-
-        {
-          notifications.length === 0 &&  (
-            <div className="text-center py-8">
-              <div className="flex items-center justify-center mb-3 text-slate-600">
-                <BellOff className="w-12 h-12"/>
+          ) : (
+            <div className="py-24 flex flex-col items-center justify-center text-center px-10">
+              <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-8">
+                <BellOff size={48} />
               </div>
-              <p className="text-slate-500">No Notifications yet</p>
+              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Quiet Day Today</h4>
+              <p className="text-slate-500 dark:text-slate-400 font-medium max-w-sm leading-relaxed">
+                You're all caught up! New updates regarding your projects and requests will appear here in real-time.
+              </p>
             </div>
-          )
-        }
-
+          )}
+        </div>
+      </section>
     </div>
-  </div>
-  </>;
+  );
 };
 
 export default NotificationsPage;
