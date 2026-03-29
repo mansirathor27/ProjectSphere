@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { MessageSquare, CheckCircle, X, Loader } from "lucide-react";
+import { MessageSquare, CheckCircle, X, Loader, CalendarPlus, MessageCircle } from "lucide-react";
 import { addFeedback, getAssignedStudents, markComplete } from "../../store/slices/teacherSlice";
+import { generateICS } from "../../lib/calendar";
+import { useNavigate } from "react-router-dom";
 
 const AssignedStudents = () => {
-  const [sortBy, setSortBy] = useState("");
+  const [sortBy] = useState("");
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -15,6 +17,7 @@ const AssignedStudents = () => {
   });
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const {assignedStudents, loading, error} = useSelector((state)=> state.teacher);
   useEffect(()=>{
     dispatch(getAssignedStudents());
@@ -24,10 +27,8 @@ const AssignedStudents = () => {
     switch (status) {
       case "completed":
         return "bg-green-100 text-green-700 border-green-300"
-        break;
       case "approved":
         return "bg-blue-100 text-blue-700 border-blue-300"
-        break;
       default:
         return "bg-yellow-100 text-yellow-700 border-yellow-300"
     }
@@ -54,7 +55,7 @@ const AssignedStudents = () => {
     setShowFeedbackModal(false);
     setShowCompleteModal(false);
     setSelectedStudent(null);
-    setFeedbackData({ title: "", messgae: "", type: "general"});
+    setFeedbackData({ title: "", message: "", type: "general"});
   };
 
   const submitFeedback = () =>{
@@ -191,11 +192,28 @@ const sortedStudents =
 
                 </div>
 
-                <div className="mb-5">
+                <div className="mb-5 flex flex-col gap-1">
                   <h4 className="font-medium text-slate-700 mb-1">{student.project.title || "No project title"}</h4>
                   <p className="text-xs text-slate-500">
                     Last Update:{" "} {new Date(student.project?.updatedAt || new Date()).toLocaleDateString()}
                   </p>
+                  {student.project?.deadline && (
+                    <div className="flex items-center justify-between mt-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                      <p className="text-xs text-slate-600 font-medium">
+                        Deadline: {new Date(student.project.deadline).toLocaleDateString()}
+                      </p>
+                      <button 
+                        onClick={() => generateICS(
+                          student.project.title || "Project Deadline", 
+                          `Deadline for ${student.name}'s project`, 
+                          student.project.deadline
+                        )}
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded bg-blue-100/50 hover:bg-blue-100 transition-colors"
+                      >
+                        <CalendarPlus className="w-3 h-3"/> Add to Calendar
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* actions */}
@@ -205,7 +223,7 @@ const sortedStudents =
                    text-white text-sm rounded-lg hover:bg-blue-700 transition">
                     <MessageSquare className="w-4 h-4"/> Feedback
                    </button>
-                  <button onClick={()=>handleMarkComplete(student)}
+                   <button onClick={()=>handleMarkComplete(student)}
                   disabled={student.project?.status === "completed"} 
                   className={`flex items-center justify-center gap-2 px-4 py-2 bg-green-600
                    text-white text-sm rounded-lg hover:bg-green-700 transition ${student?.project?.status === "completed"
@@ -214,6 +232,12 @@ const sortedStudents =
                    }`}>
                     <CheckCircle className="w-4 h-4"/> Mark Complete
                    </button>
+                   <button 
+                    onClick={() => navigate(`/teacher/chat/${student.project._id}`)}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition"
+                  >
+                    <MessageCircle className="w-4 h-4"/> Chat
+                  </button>
                 </div>
 
               </div>

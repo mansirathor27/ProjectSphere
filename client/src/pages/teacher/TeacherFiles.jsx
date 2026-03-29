@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ArrowDownToLine, FileArchive, FileSpreadsheet, FileText, LayoutGrid, List, File } from "lucide-react";
 import {downloadTeacherFile, getFiles} from "../../store/slices/teacherSlice"
@@ -9,7 +9,7 @@ const TeacherFiles = () => {
 
   const dispatch = useDispatch();
 
-  const filesFromStore = useSelector((state)=>state.teacher.files) || [];
+  const filesFromStore = useSelector((state)=>state.teacher.files);
   useEffect(()=>{
     dispatch(getFiles());
   },[dispatch]);
@@ -20,14 +20,12 @@ const TeacherFiles = () => {
     return (parts[parts.length -1] || "").toLowerCase()
   };
 
-  const normalizeFile = (f)=>{
+  const normalizeFile = useCallback((f)=>{
     const type = deriveTypeFormatName(f.originalName) || f.fileType || "other";
 
   let category = "other";
   if(["pdf", "doc", "docx", "txt"].includes(type)){
     category = "report";
-  }else if(["ppt", "pptx"].includes(type)){
-    category = "presentation";
   }else if(["ppt", "pptx"].includes(type)){
     category = "presentation";
   }else if(["zip", "rar", "7z", "js", "ts", "html", "css", "json"].includes(type)){
@@ -41,17 +39,18 @@ const TeacherFiles = () => {
     name: f.originalName,
     type: type.toUpperCase(),
     size: f.size || "-",
-    student: f.studentName || "-",
+    student: f.studentNames || f.studentName || "-",
+    email: f.studentEmails || "-",
     uploadedAt: f.uploadedAt || f.createdAt || new Date().toISOString(),
     category,
     projectId: f.projectId || f.project?._id,
     fileId: f._id,
   };
-};
+}, []);
 
 const files = useMemo (()=> (
-  filesFromStore || []).map(normalizeFile),
-  [filesFromStore]
+  (filesFromStore || []).map(normalizeFile)),
+  [filesFromStore, normalizeFile]
 );
     const getFileIcon = (type) => {
     switch (type.toLowerCase()) {
