@@ -1,306 +1,62 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { 
+  Home, 
+  FileText, 
+  Upload, 
+  User, 
+  MessageSquare, 
+  Bell, 
+  Clock, 
+  Users, 
+  Folder, 
+  CheckSquare, 
+  GraduationCap, 
+  Link, 
+  Calendar,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
+import { useSelector } from "react-redux";
 
 const Sidebar = ({ open, setOpen, userRole }) => {
   const location = useLocation();
+  const { project } = useSelector((state) => state.student);
 
   const getNavigationItems = () => {
     switch (userRole) {
       case "Student":
         return [
-          { name: "Home", path: "/student", icon: "home" },
-          {
-            name: "Submit Proposal",
-            path: "/student/submit-proposal",
-            icon: "document",
-          },
-          {
-            name: "Upload Files",
-            path: "/student/upload-files",
-            icon: "upload",
-          },
-          { name: "Supervisor", path: "/student/supervisor", icon: "user" },
-          { name: "Feedback", path: "/student/feedback", icon: "chat" },
-          {
-            name: "Notifications",
-            path: "/student/notifications",
-            icon: "bell",
-          },
+          { name: "Dashboard", path: "/student", icon: Home },
+          { name: "Submit Proposal", path: "/student/submit-proposal", icon: FileText },
+          { name: "Upload Files", path: "/student/upload-files", icon: Upload },
+          { name: "My Supervisor", path: "/student/supervisor", icon: User },
+          { name: "Feedback", path: "/student/feedback", icon: MessageSquare },
+          { name: "Notifications", path: "/student/notifications", icon: Bell },
+          ...(project?._id ? [{ name: "Messages", path: `/student/chat/${project._id}`, icon: MessageSquare }] : []),
         ];
       case "Teacher":
         return [
-          { name: "Home", path: "/teacher", icon: "home" },
-          {
-            name: "Pending Requests",
-            path: "/teacher/pending-requests",
-            icon: "clock",
-          },
-          {
-            name: "Assigned Students",
-            path: "/teacher/assigned-students",
-            icon: "users",
-          },
-          { name: "Files", path: "/teacher/files", icon: "folder" },
+          { name: "Dashboard", path: "/teacher", icon: Home },
+          { name: "Pending Requests", path: "/teacher/pending-requests", icon: Clock },
+          { name: "Assigned Students", path: "/teacher/assigned-students", icon: Users },
+          { name: "Project Files", path: "/teacher/files", icon: Folder },
+          { name: "Manage Deadlines", path: "/teacher/deadlines", icon: Calendar },
+          { name: "Messages", path: "/teacher/messages", icon: MessageSquare },
+          { name: "Notifications", path: "/teacher/notifications", icon: Bell },
         ];
       case "Admin":
         return [
-          { name: "Home", path: "/admin", icon: "home" },
-          { name: "Manage Students", path: "/admin/students", icon: "users" },
-          {
-            name: "Manage Teachers",
-            path: "/admin/teachers",
-            icon: "academic",
-          },
-          {
-            name: "Assign Supervisor",
-            path: "/admin/assign-supervisor",
-            icon: "link",
-          },
-          { name: "Deadlines", path: "/admin/deadlines", icon: "calendar" },
-          { name: "Projects", path: "/admin/projects", icon: "folder" },
+          { name: "Dashboard", path: "/admin", icon: Home },
+          { name: "Manage Students", path: "/admin/students", icon: Users },
+          { name: "Manage Teachers", path: "/admin/teachers", icon: GraduationCap },
+          { name: "Assign Supervisor", path: "/admin/assign-supervisor", icon: Link },
+          { name: "Manage Deadlines", path: "/admin/deadlines", icon: Calendar },
+          { name: "All Projects", path: "/admin/projects", icon: Folder },
+          { name: "Faculty Reports", path: "/admin/reports", icon: FileText },
+          { name: "Notifications", path: "/admin/notifications", icon: Bell },
         ];
       default:
         return [];
-    }
-  };
-
-  console.log(userRole);
-
-  const getIcon = (iconName, isActive = false) => {
-    const className = `w-5 h-5 ${isActive ? "text-blue-600" : "text-slate-600"
-      }`;
-
-    switch (iconName) {
-      case "home":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
-        );
-      case "document":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-        );
-      case "upload":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            />
-          </svg>
-        );
-      case "user":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-        );
-      case "chat":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-        );
-      case "bell":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-5 5-5-5h5zm-5-8a3 3 0 11-6 0 3 3 0 016 0zm6.5 0c0-4.418-4.03-8-9-8s-9 3.582-9 8c0 1.5.5 2.91 1.34 4.06L3 20l3.72-1.395c1.15.84 2.56 1.34 4.06 1.34z"
-            />
-          </svg>
-        );
-      case "clock":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        );
-      case "users":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
-        );
-      case "folder":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-            />
-          </svg>
-        );
-      case "check":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        );
-      case "academic":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 14l9-5-9-5-9 5 9 5z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
-            />
-          </svg>
-        );
-      case "link":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-            />
-          </svg>
-        );
-      case "calendar":
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        );
-      default:
-        return (
-          <svg
-            className={className}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7h16z"
-            />
-          </svg>
-        );
     }
   };
 
@@ -310,149 +66,152 @@ const Sidebar = ({ open, setOpen, userRole }) => {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`fixed -left-full lg:left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-slate-200 transition-all duration-300 z-30 ${open ? "w-64" : "w-20"
-          }`}
+        className={`fixed left-0 top-20 h-[calc(100vh-6rem)] m-4 glass-effect rounded-[2.5rem] transition-all duration-500 ease-in-out z-30 shadow-premium group/sidebar ${
+          open ? "w-64" : "w-16"
+        }`}
       >
-        <div className="flex flex-col h-full">
-          <nav className="flex-1 px-4 py-6 space-y-2">
+        <div className="flex flex-col h-full overflow-hidden relative">
+          {/* Sidebar Toggle Button - Floating style */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="absolute -right-3 top-10 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:scale-110 active:scale-95 transition-all z-50 lg:flex hidden"
+          >
+            {open ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </button>
+
+          <nav className="flex-1 px-3 py-8 space-y-2 overflow-y-auto no-scrollbar">
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.path;
+              const Icon = item.icon;
 
               return (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) => `
-                    flex items-center px-4 py-3 rounded-lg transition-all duration-200
-                    ${isActive
-                      ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
-                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+                    group relative flex items-center rounded-2xl px-3 py-3.5 transition-all duration-300 ease-out
+                    ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400"
                     }
                   `}
-                  onClick={() => {
-                    // Close sidebar on mobile after navigation
-                    if (window.innerWidth < 1024) {
-                      setOpen(false);
-                    }
-                  }}
                 >
-                  <div className="flex-shrink-0">
-                    {getIcon(item.icon, isActive)}
+                  <div className="flex-shrink-0 relative">
+                    <Icon
+                      size={20}
+                      strokeWidth={isActive ? 2.5 : 2}
+                      className={isActive ? "animate-in zoom-in-75 duration-300" : ""}
+                    />
+                    {/* Active indicator dot for collapsed state */}
+                    {isActive && !open && (
+                      <div className="absolute -right-1 -top-1 w-2 h-2 bg-white rounded-full border-2 border-blue-600" />
+                    )}
                   </div>
                   <span
-                    className={`ml-3 font-medium transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 lg:opacity-0"
-                      } ${open ? "block" : "hidden lg:hidden"}`}
+                    className={`
+                      ml-3 font-semibold text-[15px] transition-all duration-500 whitespace-nowrap overflow-hidden
+                      ${open ? "opacity-100 max-w-xs translate-x-0" : "opacity-0 max-w-0 -translate-x-4 lg:hidden"}
+                    `}
                   >
                     {item.name}
                   </span>
+                  
+                  {/* Premium Tooltip for collapsed state */}
+                  {!open && (
+                    <div className="absolute left-[calc(100%+1rem)] px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl shadow-black/10">
+                      {item.name}
+                      <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-900 dark:bg-white rotate-45" />
+                    </div>
+                  )}
                 </NavLink>
               );
             })}
           </nav>
 
           {/* Sidebar footer */}
-          <div className="p-4 border-t border-slate-200">
-            <div
-              className={`transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 lg:opacity-0"
-                } ${open ? "block" : "hidden lg:hidden"}`}
-            >
-              <p className="text-xs text-slate-500 text-center">
-                Educational Project Management v1.0
-              </p>
+          <div className={`p-4 mt-auto transition-all duration-500 ${open ? "opacity-100" : "opacity-0 scale-90"}`}>
+            <div className="rounded-[1.5rem] bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/5 dark:to-indigo-500/5 p-4 border border-blue-500/10">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/20">
+                  <GraduationCap size={20} className="text-white" />
+                </div>
+                {open && (
+                  <div className="transition-all duration-300">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">Admin Hub</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">v1.0.2 Platinum</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
-      {/* <div className={`fixed inset-0 bg-white z-40 lg:hidden transition-transform duration-300 ${
-        open ? 'translate-x-0' : '-translate-x-full'
-      }`}> */}
-      {/* <div className="flex flex-col h-full pt-16"> */}
-      {/* Mobile navigation */}
-      {/* <nav className="flex-1 px-4 py-6 space-y-2">
+      {/* Mobile Sidebar */}
+      <div
+        className={`
+          fixed inset-y-0 left-0 w-80 bg-background z-50 lg:hidden 
+          transform transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          shadow-[20px_0_60px_-15px_rgba(0,0,0,0.3)]
+        `}
+      >
+        <div className="flex flex-col h-full bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-900/10">
+          {/* Mobile Header */}
+          <div className="relative overflow-hidden px-6 py-8">
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-600/10 blur-3xl" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 shadow-xl shadow-blue-600/20">
+                  <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">ProjectSphere</h2>
+                  <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.2em]">Management</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-2xl p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:scale-110 active:scale-95 transition-all"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Navigation */}
+          <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.path;
-              
+              const Icon = item.icon;
+
               return (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  className={({ isActive }) => `
-                    flex items-center px-4 py-3 rounded-lg transition-all duration-200
-                    ${isActive 
-                      ? 'bg-blue-50 text-blue-700' 
-                      : 'text-slate-700 hover:bg-slate-100 hover:text-blue-600'
+                  onClick={() => setOpen(false)}
+                  className={`
+                    flex items-center rounded-2xl px-4 py-4 transition-all duration-300
+                    ${
+                      isActive
+                        ? "bg-blue-600 text-white shadow-xl shadow-blue-600/20"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                     }
                   `}
-                  onClick={() => setOpen(false)}
                 >
-                  <div className="flex-shrink-0">
-                    {getIcon(item.icon, isActive)}
-                  </div>
-                  <span className="ml-3 font-medium">
-                    {item.name}
-                  </span>
-                </NavLink>
-              );
-            })}
-          </nav> */}
-
-      {/* Mobile footer */}
-      {/* <div className="p-4 border-t border-slate-200">
-            <p className="text-xs text-slate-500 text-center">
-              Educational Project Management v1.0
-            </p>
-          </div> */}
-      {/* </div> */}
-      {/* </div> */}
-
-      {/* Mobile Sidebar Overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
-          onClick={() => setOpen(false)} // click backdrop to close
-        ></div>
-      )}
-
-      {/* Mobile Sidebar Drawer */}
-      <div
-        className={`fixed inset-y-0 left-0 w-64 bg-white z-50 lg:hidden transform transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"
-          }`}
-      >
-        <div className="flex flex-col h-full pt-16">
-          {/* Mobile navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigationItems.map((item) => {
-              const isActive = location.pathname === item.path;
-
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) => `
-              flex items-center px-4 py-3 rounded-lg transition-all duration-200
-              ${isActive
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
-                    }
-            `}
-                  onClick={() => setOpen(false)}
-                >
-                  <div className="flex-shrink-0">
-                    {getIcon(item.icon, isActive)}
-                  </div>
-                  <span className="ml-3 font-medium">{item.name}</span>
+                  <Icon size={22} className={isActive ? "animate-pulse" : ""} />
+                  <span className="ml-4 font-bold text-base">{item.name}</span>
                 </NavLink>
               );
             })}
           </nav>
 
-          {/* Mobile footer */}
-          <div className="p-4 border-t border-slate-200">
-            <p className="text-xs text-slate-500 text-center">
-              Educational Project Management v1.0
-            </p>
+          <div className="p-6 border-t border-slate-100 dark:border-slate-800/50">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
+              <span>ProjectSphere</span>
+              <span>v1.0.2</span>
+            </div>
           </div>
         </div>
       </div>
