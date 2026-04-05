@@ -18,9 +18,10 @@ const ProjectsPage = () => {
 
   const filteredProjects = useMemo(() => {
     return (projects || []).filter((p) => {
+      const studentName = p.students?.[0]?.name || "";
       const matchesSearch = 
         (p.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.student?.name || "").toLowerCase().includes(searchTerm.toLowerCase());
+        studentName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = filterStatus === "all" || p.status === filterStatus;
       return matchesSearch && matchesFilter;
     });
@@ -52,20 +53,20 @@ const ProjectsPage = () => {
   };
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-8 pb-2">
+    <div className="mx-auto max-w-[1600px] space-y-8 pb-12">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-blue-50/60 p-8 shadow-xl shadow-slate-200/40 dark:border-slate-700/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-indigo-950/40 dark:shadow-none">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-blue-400/10 blur-3xl dark:bg-indigo-500/10" />
-        <div className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-violet-400/10 blur-3xl dark:bg-violet-500/10" />
-        <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <section className="relative overflow-hidden premium-card !p-8 border-none shadow-xl group">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-blue-600/5 to-transparent rounded-full blur-[100px] -z-10" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-              Project Management
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-blue-600/10 border border-blue-600/20 text-tiny text-blue-600">
+              <FileText size={12} />
+              Project Registry
+            </div>
+            <h1 className="heading-lg">
               Student Projects
             </h1>
-            <p className="max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className="max-w-xl text-body">
               Review and manage student project proposals. Approve valid projects so they can be assigned to supervisors.
             </p>
           </div>
@@ -84,7 +85,7 @@ const ProjectsPage = () => {
               <input
                 type="text"
                 placeholder="Search by student or project title..."
-                className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -98,7 +99,7 @@ const ProjectsPage = () => {
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <select
-                className="w-full appearance-none rounded-2xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full appearance-none rounded-2xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
@@ -127,22 +128,37 @@ const ProjectsPage = () => {
                   <span className="text-xs text-slate-500">Supervisor: {project.supervisor.name}</span>
                 )}
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-2">
+              <h3 className="heading-sm mb-2 line-clamp-2">
                 {project.title}
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 flex-1 line-clamp-3">
+              <p className="text-body mb-4 flex-1 line-clamp-3">
                 {project.description}
               </p>
               
+              {/* Project Tags */}
+              {project.tags && project.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {project.tags.map((tag, idx) => (
+                    <span key={idx} className="px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-xs font-semibold text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              
               <div className="mt-auto border-t border-slate-100 dark:border-slate-800 pt-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 font-bold">
-                    {project.student?.name?.charAt(0) || "U"}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">{project.student?.name}</p>
-                    <p className="text-xs text-slate-500">{project.student?.email}</p>
-                  </div>
+                <div className="space-y-3 mb-4">
+                  {(project.students || []).map((student, idx) => (
+                    <div key={student._id || idx} className="flex items-center gap-2">
+                      <div className="h-8 w-8 shrink-0 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 font-bold">
+                        {student.name?.charAt(0) || "U"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-body-bold truncate">{student.name || "Unknown"}</p>
+                        <p className="text-tiny truncate">{student.email || ""}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {project.status === "pending" && (

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { 
   deleteNotification, 
   getNotifications, 
@@ -118,30 +119,34 @@ const NotificationsPage = () => {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-10">
+    <div className="mx-auto max-w-[1600px] space-y-8 pb-12">
       {/* Header Section */}
-      <section className="premium-card relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl -z-10 group-hover:bg-blue-600/10 transition-all duration-700" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <section className="premium-card relative overflow-hidden group border-none shadow-xl !p-8">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-blue-600/5 to-transparent rounded-full blur-[100px] -z-10" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 border border-blue-600/20 text-[10px] font-bold text-blue-600 uppercase tracking-widest">
-              <Bell size={12} />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-blue-600/10 border border-blue-600/20 text-tiny text-blue-600 uppercase tracking-widest shadow-sm">
+              <Sparkles size={12} />
               Real-time Feed
             </div>
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">Activity Center</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl leading-relaxed">
-              Manage your project updates, team requests, and system communications in one central hub.
+            <h1 className="heading-lg tracking-tight">
+              Activity Stream
+            </h1>
+            <p className="max-w-xl text-body leading-relaxed">
+              Real-time synchronization of system events, project milestones, and faculty requests.
             </p>
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsReadHandler}
-              className="px-8 py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-2xl font-bold shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
-            >
-              <CheckCircle2 size={18} />
-              Refresh Dashboard
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsReadHandler}
+                className="px-8 py-4 bg-blue-600 text-white rounded-2xl text-tiny font-bold uppercase tracking-widest shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2 group/btn"
+              >
+                <BadgeCheck size={16} />
+                Clear All
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
@@ -158,8 +163,8 @@ const NotificationsPage = () => {
               <stat.icon size={28} />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.title}</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
+              <p className="text-tiny mb-1">{stat.title}</p>
+              <p className="heading-lg">{stat.value}</p>
             </div>
           </div>
         ))}
@@ -168,8 +173,8 @@ const NotificationsPage = () => {
       {/* Notification List Area */}
       <section className="premium-card !p-0 overflow-hidden">
         <div className="px-10 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Recent Updates</h3>
-          <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+          <h3 className="heading-md">Recent Updates</h3>
+          <div className="flex items-center gap-4 text-body font-bold">
              <span>Showing {notifications.length} notifications</span>
           </div>
         </div>
@@ -200,14 +205,14 @@ const NotificationsPage = () => {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                          <h4 className={`text-lg font-bold truncate ${isUnread ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
+                          <h4 className={`heading-sm truncate ${isUnread ? "text-slate-800 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
                             {notification.title || (notification.type ? notification.type.charAt(0).toUpperCase() + notification.type.slice(1) : "Notification")}
                           </h4>
                           {isUnread && (
-                            <span className="px-2 py-0.5 rounded-md bg-blue-600 text-[8px] font-bold text-white uppercase tracking-tighter">New</span>
+                            <span className="px-2 py-0.5 rounded-md bg-blue-600 text-tiny font-bold text-white uppercase tracking-tighter">New</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <div className="flex items-center gap-4 text-tiny font-bold uppercase tracking-widest">
                           <span className="flex items-center gap-1"><Clock size={12} /> {formatDate(notification.createdAt)}</span>
                           <span className={`flex items-center gap-1 ${priority.text}`}>
                             <div className={`w-1.5 h-1.5 rounded-full ${priority.dot}`} />
@@ -235,14 +240,21 @@ const NotificationsPage = () => {
                       </div>
                     </div>
 
-                    <p className={`text-sm font-medium leading-relaxed max-w-3xl ${isUnread ? "text-slate-700 dark:text-slate-300" : "text-slate-500 dark:text-slate-400"}`}>
+                    <p className={`text-body leading-relaxed max-w-3xl ${isUnread ? "text-slate-700 dark:text-slate-300" : "text-slate-500 dark:text-slate-400"}`}>
                       {notification.message}
                     </p>
 
                     {notification.link && (
-                      <button className="flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 group/link">
-                        View Details <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
-                      </button>
+                      <Link
+                        to={notification.link}
+                        className="flex items-center gap-2 text-tiny font-bold text-blue-600 hover:text-blue-700 group/link"
+                      >
+                        View Details{" "}
+                        <ArrowRight
+                          size={14}
+                          className="group-hover/link:translate-x-1 transition-transform"
+                        />
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -253,8 +265,8 @@ const NotificationsPage = () => {
               <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-8">
                 <BellOff size={48} />
               </div>
-              <h4 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Quiet Day Today</h4>
-              <p className="text-slate-500 dark:text-slate-400 font-medium max-w-sm leading-relaxed">
+              <h4 className="heading-lg mb-3">Quiet Day Today</h4>
+              <p className="text-body max-w-sm leading-relaxed font-bold">
                 You're all caught up! New updates regarding your projects and requests will appear here in real-time.
               </p>
             </div>

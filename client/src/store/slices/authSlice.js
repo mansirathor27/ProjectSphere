@@ -46,6 +46,17 @@ export const resetPassword = createAsyncThunk("/auth/password/reset",async ({tok
   }
 });
 
+export const updateProfile = createAsyncThunk("/auth/update-profile", async (data, thunkAPI) => {
+  try {
+    const res = await axiosInstance.put("/auth/update-profile", data);
+    toast.success(res.data.message);
+    return res.data.user;
+  } catch (error) {
+    toast.error(error.response.data.message || "Failed to update profile");
+    return thunkAPI.rejectWithValue(error.response.data.message);
+  }
+});
+
 export const getUser = createAsyncThunk("/auth/me",async (_, thunkAPI) => {
   try {
     const res = await axiosInstance.get("/auth/me");
@@ -57,7 +68,7 @@ export const getUser = createAsyncThunk("/auth/me",async (_, thunkAPI) => {
 
 export const logout = createAsyncThunk("/auth/logout",async (_, thunkAPI) => {
   try {
-    const res = await axiosInstance.get("/auth/logout");
+    await axiosInstance.get("/auth/logout");
     return null;
   } catch (error) {
     toast.error(error.response.data.message || "Failed to logout");
@@ -94,14 +105,14 @@ const authSlice = createSlice({
       state.isCheckingAuth = false;
       state.authUser =null;
     })
-    .addCase(logout.fulfilled, (state, action) => {
+    .addCase(logout.fulfilled, (state) => {
       state.authUser = null;
     }).addCase(logout.rejected, (state) => {
-      state.authUser = state.authUser;
+      state.authUser = null;
     })
     .addCase(forgotPassword.pending, (state) => {
       state.isRequestingForToken = true;
-    }).addCase(forgotPassword.fulfilled, (state, action) => {
+    }).addCase(forgotPassword.fulfilled, (state) => {
       state.isRequestingForToken = false;
     }).addCase(forgotPassword.rejected, (state) => {
       state.isRequestingForToken = false;
@@ -115,6 +126,16 @@ const authSlice = createSlice({
     }).addCase(resetPassword.rejected, (state) => {
       state.isUpdatingPassword = false;
     })
+    .addCase(updateProfile.pending, (state) => {
+      state.isUpdatingProfile = true;
+    })
+    .addCase(updateProfile.fulfilled, (state, action) => {
+      state.isUpdatingProfile = false;
+      state.authUser = action.payload;
+    })
+    .addCase(updateProfile.rejected, (state) => {
+      state.isUpdatingProfile = false;
+    });
   },
 });
 

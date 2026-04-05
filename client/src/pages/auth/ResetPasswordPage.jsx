@@ -73,8 +73,8 @@ const ResetPasswordPage = () => {
         <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full mb-4">
           <KeyRound className="w-8 h-8 text-white"/>
         </div>
-        <h1 className="text-2xl font-bold text-slate-800">Reset Password</h1>
-        <p className="text-slate-600 mt-2">Enter your new password</p>
+        <h1 className="heading-lg">Reset Password</h1>
+        <p className="text-body mt-2">Enter your new password</p>
       </div>
 
       {/* Reset Password Form */}
@@ -91,7 +91,7 @@ const ResetPasswordPage = () => {
 
           {/* Password */}
           <div>
-            <label className="label">New Password</label>
+            <label className="text-tiny">New Password</label>
             <input type="password" name="password" value={formData.password} onChange={handleChange} className={`input ${errors.password ? "input-error": ""}`}
             placeholder="Enter your password"
             />
@@ -104,7 +104,7 @@ const ResetPasswordPage = () => {
 
           {/* Confirm Password */}
           <div>
-            <label className="label">Confirm Password</label>
+            <label className="text-tiny">Confirm Password</label>
             <input
                 type="password"
                 name="confirmPassword"
@@ -137,8 +137,8 @@ const ResetPasswordPage = () => {
 
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-slate-600">
-            Remember your password? <Link to={"/login"} className="text-blue-600 hover:text-blue-500 font-medium">
+          <p className="text-body font-bold">
+            Remember your password? <Link to={"/login"} className="text-blue-600 hover:text-blue-500">
             Sign in</Link>
           </p>
         </div>

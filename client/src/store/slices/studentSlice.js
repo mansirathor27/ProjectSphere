@@ -157,34 +157,96 @@ const studentSlice = createSlice({
     deadlines: [],
     feedback: [],
     status: null,
+    loading: false,
   },
-  reducers: {},
+  reducers: {
+    addFeedbackToState: (state, action) => {
+      if (Array.isArray(state.feedback)) {
+        state.feedback = [action.payload, ...state.feedback];
+      } else {
+        state.feedback = [action.payload];
+      }
+    },
+    updateProjectState: (state, action) => {
+      state.project = { ...state.project, ...action.payload };
+    }
+  },
   extraReducers: (builder) => {
+    // submitProjectProposal
+    builder.addCase(submitProjectProposal.pending, (state) => { state.loading = true; });
     builder.addCase(submitProjectProposal.fulfilled, (state, action)=>{
       state.project = action.payload?.project || action.payload;
+      state.loading = false;
     });
+    builder.addCase(submitProjectProposal.rejected, (state) => { state.loading = false; });
+
+    // fetchProject
+    builder.addCase(fetchProject.pending, (state) => { state.loading = true; });
     builder.addCase(fetchProject.fulfilled, (state, action)=>{
       state.project = action.payload?.project || action.payload || null;
       state.files = action.payload?.files || [];
+      state.loading = false;
     });
+    builder.addCase(fetchProject.rejected, (state) => { state.loading = false; });
+
+    // getSupervisor
+    builder.addCase(getSupervisor.pending, (state) => { state.loading = true; });
     builder.addCase(getSupervisor.fulfilled, (state, action)=>{
       state.supervisor = action.payload?.supervisor || action.payload || null;
+      state.loading = false;
     });
+    builder.addCase(getSupervisor.rejected, (state) => { state.loading = false; });
+
+    // fetchAllSupervisors
+    builder.addCase(fetchAllSupervisors.pending, (state) => { state.loading = true; });
     builder.addCase(fetchAllSupervisors.fulfilled, (state, action)=>{
       state.supervisors = action.payload?.supervisors || action.payload || [];
+      state.loading = false;
     });
+    builder.addCase(fetchAllSupervisors.rejected, (state) => { state.loading = false; });
+
+    // requestSupervisor
+    builder.addCase(requestSupervisor.pending, (state) => { state.loading = true; });
+    builder.addCase(requestSupervisor.fulfilled, (state)=>{
+      state.loading = false;
+    });
+    builder.addCase(requestSupervisor.rejected, (state) => { state.loading = false; });
+
+    // uploadFiles
+    builder.addCase(uploadFiles.pending, (state) => { state.loading = true; });
     builder.addCase(uploadFiles.fulfilled, (state, action)=>{
-      const newFiles = action.payload?.project?.files || action.payload || [];
-      state.files = [...state.files, ...newFiles];
+      const projectPayload = action.payload?.project || action.payload;
+      if (projectPayload?._id) {
+        state.project = projectPayload;
+        state.files = projectPayload.files || [];
+      }
+      state.loading = false;
     });
+    builder.addCase(uploadFiles.rejected, (state) => { state.loading = false; });
+
+    // getFeedback
+    builder.addCase(getFeedback.pending, (state) => { state.loading = true; });
     builder.addCase(getFeedback.fulfilled, (state, action)=>{
       state.feedback = action.payload || [];
+      state.loading = false;
     });
+    builder.addCase(getFeedback.rejected, (state) => { state.loading = false; });
+
+    // downloadFile
+    builder.addCase(downloadFile.pending, (state) => { state.loading = true; });
+    builder.addCase(downloadFile.fulfilled, (state)=>{ state.loading = false; });
+    builder.addCase(downloadFile.rejected, (state) => { state.loading = false; });
+
+    // fetchDashboardStats
+    builder.addCase(fetchDashboardStats.pending, (state) => { state.loading = true; });
     builder.addCase(fetchDashboardStats.fulfilled, (state, action)=>{
       state.dashboardStats = action.payload || [];
+      state.loading = false;
     });
-    
+    builder.addCase(fetchDashboardStats.rejected, (state) => { state.loading = false; });
   },
 });
+
+export const { addFeedbackToState, updateProjectState } = studentSlice.actions;
 
 export default studentSlice.reducer;

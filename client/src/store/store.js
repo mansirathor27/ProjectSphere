@@ -7,6 +7,8 @@ import studentReducer from "./slices/studentSlice";
 import projectReducer from "./slices/projectSlice";
 import deadlineReducer from "./slices/deadlineSlice";
 import teacherReducer from "./slices/teacherSlice";
+import themeReducer from "./slices/themeSlice";
+import announcementReducer from "./slices/announcementSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -17,5 +19,7 @@ export const store = configureStore({
     project: projectReducer,
     deadline: deadlineReducer,
     teacher: teacherReducer,
+    theme: themeReducer,
+    announcements: announcementReducer,
   },
 });

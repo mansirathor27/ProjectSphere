@@ -32,7 +32,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
           { name: "My Supervisor", path: "/student/supervisor", icon: User },
           { name: "Feedback", path: "/student/feedback", icon: MessageSquare },
           { name: "Notifications", path: "/student/notifications", icon: Bell },
-          ...(project?._id ? [{ name: "Messages", path: `/student/chat/${project._id}`, icon: MessageSquare }] : []),
+          { name: "Messages", path: project?._id ? `/student/chat/${project._id}` : "/student", icon: MessageSquare },
         ];
       case "Teacher":
         return [
@@ -110,7 +110,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                   </div>
                   <span
                     className={`
-                      ml-3 font-semibold text-[15px] transition-all duration-500 whitespace-nowrap overflow-hidden
+                      ml-3 text-body transition-all duration-500 whitespace-nowrap overflow-hidden
                       ${open ? "opacity-100 max-w-xs translate-x-0" : "opacity-0 max-w-0 -translate-x-4 lg:hidden"}
                     `}
                   >
@@ -119,7 +119,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                   
                   {/* Premium Tooltip for collapsed state */}
                   {!open && (
-                    <div className="absolute left-[calc(100%+1rem)] px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl shadow-black/10">
+                    <div className="absolute left-[calc(100%+1rem)] px-3 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-800 text-tiny rounded-xl opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 pointer-events-none whitespace-nowrap z-50 shadow-xl shadow-black/10">
                       {item.name}
                       <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-900 dark:bg-white rotate-45" />
                     </div>
@@ -138,8 +138,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                 </div>
                 {open && (
                   <div className="transition-all duration-300">
-                    <p className="text-sm font-bold text-slate-800 dark:text-white">Admin Hub</p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">v1.0.2 Platinum</p>
+                    <p className="heading-sm !text-sm">Admin Hub</p>
+                    <p className="text-tiny">v1.0.2 Platinum</p>
                   </div>
                 )}
               </div>
@@ -167,8 +167,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                   <GraduationCap className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">ProjectSphere</h2>
-                  <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.2em]">Management</p>
+                  <h2 className="heading-md">ProjectSphere</h2>
+                  <p className="text-tiny text-blue-600 dark:text-blue-400">Management</p>
                 </div>
               </div>
               <button
@@ -201,14 +201,14 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                   `}
                 >
                   <Icon size={22} className={isActive ? "animate-pulse" : ""} />
-                  <span className="ml-4 font-bold text-base">{item.name}</span>
+                  <span className="ml-4 text-body transition-all duration-300">{item.name}</span>
                 </NavLink>
               );
             })}
           </nav>
 
           <div className="p-6 border-t border-slate-100 dark:border-slate-800/50">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
+            <div className="flex items-center justify-between text-tiny">
               <span>ProjectSphere</span>
               <span>v1.0.2</span>
             </div>

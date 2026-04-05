@@ -182,27 +182,33 @@ const teacherSlice = createSlice({
 
   reducers: {},
   extraReducers: (builder) => {
-     builder.addCase(getAssignedStudents.pending, (state, action)=>{
-      state.loading= true,
+    builder.addCase(getAssignedStudents.pending, (state)=>{
+      state.loading = true;
       state.error = null;
     });
-     builder.addCase(getAssignedStudents.fulfilled, (state, action)=>{
+    builder.addCase(getAssignedStudents.fulfilled, (state, action)=>{
       state.loading = false; 
       state.assignedStudents = action.payload?.students || action.payload || [];
     });
-     builder.addCase(getAssignedStudents.rejected, (state, action)=>{
+    builder.addCase(getAssignedStudents.rejected, (state, action)=>{
       state.error = action.payload || "Failed to fetch assigned students";
       state.loading = false;
     });
-     builder.addCase(addFeedback.fulfilled, (state, action)=>{
+
+    builder.addCase(addFeedback.pending, (state) => { state.loading = true; });
+    builder.addCase(addFeedback.fulfilled, (state, action)=>{
       const {projectId, feedback} = action.payload;
       state.assignedStudents = state.assignedStudents.map((s)=>
-      s.project?.id === projectId ? {...s, feedback} : s);
+      s.project?._id === projectId || s.project?.id === projectId ? {...s, feedback} : s);
+      state.loading = false;
     });
-     builder.addCase(markComplete.fulfilled, (state, action)=>{
+    builder.addCase(addFeedback.rejected, (state) => { state.loading = false; });
+
+    builder.addCase(markComplete.pending, (state) => { state.loading = true; });
+    builder.addCase(markComplete.fulfilled, (state, action)=>{
       const {projectId} = action.payload;
       state.assignedStudents = state.assignedStudents.map((s)=>{
-        if(s.project._id == projectId){
+        if(s.project?._id == projectId || s.project?.id == projectId){
           return {
             ...s,
             project: {
@@ -212,31 +218,61 @@ const teacherSlice = createSlice({
           };
         }
         return s;
-      })
-     });
+      });
+      state.loading = false;
+    });
+    builder.addCase(markComplete.rejected, (state) => { state.loading = false; });
 
+    builder.addCase(getTeacherDashboardStats.pending, (state) => { state.loading = true; });
     builder.addCase(getTeacherDashboardStats.fulfilled, (state, action)=>{
       state.dashboardStats = action.payload;
+      state.loading = false;
     });
+    builder.addCase(getTeacherDashboardStats.rejected, (state) => { state.loading = false; });
+
+    builder.addCase(getFiles.pending, (state) => { state.loading = true; });
     builder.addCase(getFiles.fulfilled, (state, action)=>{
       state.files = action.payload?.files || action.payload || [];
+      state.loading = false;
+    });
+    builder.addCase(getFiles.rejected, (state) => { state.loading = false; });
+
+    builder.addCase(getTeacherRequests.pending, (state) => {
+      state.loading = true;
+      state.error = null;
     });
     builder.addCase(getTeacherRequests.fulfilled, (state, action)=>{
       state.list = action.payload?.requests || action.payload;
-      
+      state.loading = false;
     });
+    builder.addCase(getTeacherRequests.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload || "Failed to fetch requests";
+    });
+
+    builder.addCase(acceptRequest.pending, (state) => { state.loading = true; });
     builder.addCase(acceptRequest.fulfilled, (state, action)=>{
       const updatedRequest = action.payload;
       state.list = state.list.map((r)=> 
-      r._id === updatedRequest._id ? updatedRequest : r
-    );
+        r._id === updatedRequest._id ? updatedRequest : r
+      );
+      state.loading = false;
     });
+    builder.addCase(acceptRequest.rejected, (state) => { state.loading = false; });
+
+    builder.addCase(rejectRequest.pending, (state) => { state.loading = true; });
     builder.addCase(rejectRequest.fulfilled, (state, action)=>{
       const rejectedRequest = action.payload;
       state.list = state.list.filter((r)=> 
-      r._id !== rejectedRequest._id
-    );
+        r._id !== rejectedRequest._id
+      );
+      state.loading = false;
     });
+    builder.addCase(rejectRequest.rejected, (state) => { state.loading = false; });
+
+    builder.addCase(downloadTeacherFile.pending, (state) => { state.loading = true; });
+    builder.addCase(downloadTeacherFile.fulfilled, (state) => { state.loading = false; });
+    builder.addCase(downloadTeacherFile.rejected, (state) => { state.loading = false; });
   },
 });
 

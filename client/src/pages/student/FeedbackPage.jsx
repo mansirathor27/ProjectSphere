@@ -1,11 +1,14 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProject, getFeedback } from "../../store/slices/studentSlice";
+import { fetchProject, getFeedback, addFeedbackToState } from "../../store/slices/studentSlice";
 import { AlertTriangle, BadgeCheck, MessageCircle, User, Calendar, ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
+
+import { getSocket, connectSocket } from "../../lib/socket";
 
 const FeedbackPage = () => {
   const dispatch = useDispatch();
   const { project, feedback } = useSelector((state) => state.student);
+  const { authUser } = useSelector((state) => state.auth);
   const { mode } = useSelector((state) => state.theme);
 
   useEffect(() => {
@@ -17,6 +20,31 @@ const FeedbackPage = () => {
       dispatch(getFeedback(project._id));
     }
   }, [dispatch, project]);
+
+  useEffect(() => {
+    if (!authUser?._id) return;
+
+    connectSocket(authUser._id);
+    const socket = getSocket();
+
+    const handleNewFeedback = (data) => {
+      // Optimistic Update: Add new feedback to state immediately
+      if (data.feedback) {
+        dispatch(addFeedbackToState(data.feedback));
+      }
+      
+      // Also fetch to ensure everything is in sync (stats, etc)
+      if (project?._id) {
+         dispatch(getFeedback(project._id));
+      }
+    };
+
+    socket.on("new_feedback", handleNewFeedback);
+    
+    return () => {
+      socket.off("new_feedback", handleNewFeedback);
+    };
+  }, [authUser?._id, project?._id, dispatch]);
 
   const getFeedbackIcon = (type) => {
     if (type === "positive") {
@@ -93,30 +121,30 @@ const FeedbackPage = () => {
   };
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-8 pb-2">
+    <div className="mx-auto max-w-[1600px] space-y-8 pb-12">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-purple-50 via-white to-pink-50/60 p-8 shadow-xl shadow-slate-200/40 dark:border-slate-700/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-purple-950/40 dark:shadow-none">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-purple-400/10 blur-3xl dark:bg-purple-500/10" />
-        <div className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-pink-400/10 blur-3xl dark:bg-pink-500/10" />
-        <div className="relative">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                Communication
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                Supervisor Feedback
-              </h1>
-              <p className="max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
-                View feedback and comments from your supervisor. Use this input to improve your project.
-              </p>
+      <section className="relative overflow-hidden premium-card !p-8 border-none shadow-xl group">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-purple-600/5 to-transparent rounded-full blur-[100px] -z-10" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-600/10 border border-purple-600/20 text-tiny text-purple-600">
+              <MessageCircle size={12} />
+              Communication
             </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
-              <span className="rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 text-xs font-medium text-slate-600 shadow-sm backdrop-blur-sm dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-300">
-                {project?.title || "No Project"}
-              </span>
-            </div>
+            <h1 className="heading-lg">
+              Supervisor Feedback
+            </h1>
+            <p className="max-w-xl text-body">
+              View feedback and comments from your supervisor. Use this input to improve your project.
+            </p>
           </div>
+          {project?.title && (
+            <div className="flex shrink-0">
+               <span className="rounded-xl border border-slate-200/80 bg-white/10 px-4 py-2 text-xs font-semibold text-slate-500 shadow-sm backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-400">
+                 {project.title}
+               </span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -135,10 +163,10 @@ const FeedbackPage = () => {
                     <Icon className={`h-6 w-6 ${item.textColor}`} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    <p className="text-body mt-1">
                       {item.title}
                     </p>
-                    <p className={`text-2xl font-bold ${item.valueColor}`}>
+                    <p className={`heading-lg ${item.valueColor}`}>
                       {item.getCount(feedback)}
                     </p>
                   </div>
@@ -153,10 +181,10 @@ const FeedbackPage = () => {
       <section className="rounded-3xl border border-slate-200/90 bg-white/90 shadow-xl shadow-slate-200/25 dark:border-slate-700/80 dark:bg-slate-900/70 dark:shadow-none">
         <div className="p-6 sm:p-8">
           <div className="mb-6 border-b border-slate-200/80 pb-5 dark:border-slate-700/80">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+            <h3 className="heading-sm">
               All Feedback
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-body">
               Review all feedback received from your supervisor
             </p>
           </div>
@@ -173,16 +201,16 @@ const FeedbackPage = () => {
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         {getFeedbackIcon(f.type)}
-                        <h3 className="font-semibold text-slate-800 dark:text-slate-200">
+                        <h3 className="text-body-bold">
                           {f.title || "Feedback"}
                         </h3>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <span className="text-tiny text-left flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {formatDate(f.createdAt)}
                         </span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <span className="text-tiny text-left flex items-center gap-1">
                           <User className="h-3 w-3" />
                           {f.supervisorName || "Supervisor"}
                         </span>
@@ -190,13 +218,13 @@ const FeedbackPage = () => {
                     </div>
 
                     <div className="mt-3">
-                      <p className={`text-sm leading-relaxed ${styles.text}`}>
-                        {f.message}
-                      </p>
+                        <p className={`text-body ${styles.text}`}>
+                          {f.message}
+                        </p>
                     </div>
 
                     <div className="mt-4 flex justify-end">
-                      <span className="inline-flex items-center rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800/80 dark:text-slate-400">
+                      <span className="inline-flex items-center rounded-full bg-white/80 px-3 py-1 text-tiny text-slate-600 dark:bg-slate-800/80 dark:text-slate-400 font-bold">
                         Read
                       </span>
                     </div>

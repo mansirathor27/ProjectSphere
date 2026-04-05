@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { MessageSquare, CheckCircle, X, Loader, CalendarPlus, MessageCircle } from "lucide-react";
+import { MessageSquare, CheckCircle, X, Loader, CalendarPlus, MessageCircle, Users, Clock } from "lucide-react";
 import { addFeedback, getAssignedStudents, markComplete } from "../../store/slices/teacherSlice";
 import { generateICS } from "../../lib/calendar";
 import { useNavigate } from "react-router-dom";
@@ -140,106 +140,110 @@ const sortedStudents =
   }
 
   return( <>
-  <div className="space-y-6">
-    {/* header */}
-    <div className="card">
-      <div className="card-header">
-        <h1 className="card-title">Assigned Students</h1>
-        <p className="card-subtitle">
-          Manage your assigned students and their projects
-        </p>
+    <div className="mx-auto max-w-[1600px] space-y-8 pb-12">
+      <section className="relative overflow-hidden premium-card !p-8 border-none shadow-xl shadow-blue-500/5 group">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-blue-600/5 to-transparent rounded-full blur-[100px] -z-10" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-blue-600/10 border border-blue-600/20 text-tiny text-blue-600 uppercase tracking-widest">
+            <Users size={12} />
+            Active Mentorships
+          </div>
+          <h1 className="heading-lg">
+            Assigned Students
+          </h1>
+          <p className="max-w-xl text-body">
+            Monitor progress, provide specialized feedback, and manage final project submissions.
+          </p>
+        </div>
       </div>
 
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {
-          stats.map((item)=>{
-            return (
-              <div key={item.label} className={`${item.bg} p-4 rounded-lg`}>
-                <p className={`text-sm ${item.sub}`}>{item.label}</p>
-                <p className={`text-2xl ${item.text} font-bold`}>{item.value}</p>
-              </div>
-            )
-          })
-        }
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+        {stats.map((item) => (
+          <div key={item.label} className="p-4 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-sm">
+            <p className="text-tiny mb-1">{item.label}</p>
+            <p className="heading-lg tabular-nums">{item.value}</p>
+          </div>
+        ))}
       </div>
-
-    </div>
+    </section>
 
 
     {/* students grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {
             sortedStudents.map((student)=>(
-              <div key={student._id} className="card hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold">
-                        {student.name?.split(" ").map((n)=>n[0]).join("") || "S"}</span>
+              <div key={student._id} className="premium-card group hover:-translate-y-1 transition-all duration-300">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-bold text-xl">
+                      {student.name?.split(" ").map((n)=>n[0]).join("") || "S"}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-800">{student.name}</h3>
-                      <p className="text-sm text-slate-600">{student.email}</p>
+                      <h3 className="heading-sm">{student.name}</h3>
+                      <p className="text-tiny text-left">{student.email}</p>
                     </div>
                   </div>
 
-                  {/* status badge */}
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadge(student.project?.status)}`}>
+                  <span className={`px-4 py-1.5 rounded-full text-tiny font-bold uppercase ${
+                    student.project?.status === "completed" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                    student.project?.status === "approved" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  }`}>
                     {getStatusText(student.project?.status)}
                   </span>
-
-
                 </div>
 
-                <div className="mb-5 flex flex-col gap-1">
-                  <h4 className="font-medium text-slate-700 mb-1">{student.project.title || "No project title"}</h4>
-                  <p className="text-xs text-slate-500">
-                    Last Update:{" "} {new Date(student.project?.updatedAt || new Date()).toLocaleDateString()}
-                  </p>
-                  {student.project?.deadline && (
-                    <div className="flex items-center justify-between mt-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                      <p className="text-xs text-slate-600 font-medium">
-                        Deadline: {new Date(student.project.deadline).toLocaleDateString()}
+                <div className="space-y-4 mb-8">
+                  <div>
+                    <h4 className="heading-sm mb-1 leading-snug">{student.project.title || "Untitled Research Project"}</h4>
+                    <div className="flex items-center gap-2">
+                      <Clock size={12} className="text-slate-400" />
+                      <p className="text-tiny">
+                        Updated {new Date(student.project?.updatedAt || new Date()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
+                    </div>
+                  </div>
+
+                  {student.project?.deadline && (
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2">
+                        <CalendarPlus className="w-4 h-4 text-blue-600" />
+                        <span className="text-tiny text-slate-700 dark:text-slate-300">
+                          Due: {new Date(student.project.deadline).toLocaleDateString()}
+                        </span>
+                      </div>
                       <button 
                         onClick={() => generateICS(
                           student.project.title || "Project Deadline", 
                           `Deadline for ${student.name}'s project`, 
                           student.project.deadline
                         )}
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded bg-blue-100/50 hover:bg-blue-100 transition-colors"
+                        className="text-tiny text-blue-600 hover:text-blue-700 transition-colors"
                       >
-                        <CalendarPlus className="w-3 h-3"/> Add to Calendar
+                        Sync Calendar
                       </button>
                     </div>
                   )}
                 </div>
 
-                {/* actions */}
-                <div className="flex gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button onClick={()=>handleFeedback(student)} 
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600
-                   text-white text-sm rounded-lg hover:bg-blue-700 transition">
-                    <MessageSquare className="w-4 h-4"/> Feedback
-                   </button>
-                   <button onClick={()=>handleMarkComplete(student)}
+                  className="flex items-center justify-center gap-2 py-3 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 active:scale-95">
+                    <MessageSquare size={14}/> Feedback
+                  </button>
+                  <button onClick={()=>handleMarkComplete(student)}
                   disabled={student.project?.status === "completed"} 
-                  className={`flex items-center justify-center gap-2 px-4 py-2 bg-green-600
-                   text-white text-sm rounded-lg hover:bg-green-700 transition ${student?.project?.status === "completed"
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-green-700" 
-                   }`}>
-                    <CheckCircle className="w-4 h-4"/> Mark Complete
-                   </button>
-                   <button 
+                  className={`flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20 active:scale-95 ${student?.project?.status === "completed" ? "opacity-50 cursor-not-allowed grayscale" : ""}`}>
+                    <CheckCircle size={14}/> Finalize
+                  </button>
+                  <button 
                     onClick={() => navigate(`/teacher/chat/${student.project._id}`)}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition"
+                    className="flex items-center justify-center gap-2 py-3 bg-slate-900 dark:bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-black transition shadow-lg active:scale-95"
                   >
-                    <MessageCircle className="w-4 h-4"/> Chat
+                    <MessageCircle size={14}/> Chat
                   </button>
                 </div>
-
               </div>
           ))}
 

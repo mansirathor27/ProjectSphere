@@ -18,8 +18,12 @@ import FeedbackPage from "./pages/student/FeedbackPage";
 import NotificationsPage from "./pages/student/NotificationsPage";
 
 // Teacher Pages
-
-
+import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import AssignedStudents from "./pages/teacher/AssignedStudents";
+import PendingRequests from "./pages/teacher/PendingRequests";
+import TeacherFiles from "./pages/teacher/TeacherFiles";
+import TeacherMessages from "./pages/teacher/TeacherMessages";
+import ChatPage from "./pages/common/ChatPage";
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageStudents from "./pages/admin/ManageStudents";
@@ -27,16 +31,23 @@ import ManageTeachers from "./pages/admin/ManageTeachers";
 import AssignSupervisor from "./pages/admin/AssignSupervisor";
 import DeadlinesPage from "./pages/admin/DeadlinesPage";
 import ProjectsPage from "./pages/admin/ProjectsPage";
+import ReportsPage from "./pages/admin/ReportsPage";
+import SearchPage from "./pages/common/SearchPage";
+
+import NotFound from "./pages/NotFound"
 import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { Loader } from "lucide-react";
 import { getUser } from "./store/slices/authSlice";
 import { getAllUsers } from "./store/slices/adminSlice";
 import { getAllProjects } from "./store/slices/adminSlice";
+import { fetchDashboardStats } from "./store/slices/studentSlice";
+import ProfilePage from "./pages/ProfilePage";
 
 const App = () => {
 
   const {authUser, isCheckingAuth} = useSelector(state => state.auth);
+  const { mode } = useSelector((state) => state.theme);
   const dispatch = useDispatch();
 
   useEffect(()=>{
@@ -47,8 +58,17 @@ const App = () => {
     if(authUser?.role === "Admin"){
       dispatch(getAllUsers());
       dispatch(getAllProjects());
+    } if(authUser?.role === "Student"){
+      dispatch(fetchDashboardStats());
     }
-  }, [authUser])
+  }, [authUser, dispatch])
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (mode === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
+    localStorage.setItem("ui-theme", mode);
+  }, [mode]);
 
  const ProtectedRoute = ({ children, allowedRoles }) => {
   if (!authUser) {
@@ -99,10 +119,13 @@ const App = () => {
         <Route path="students" element={<ManageStudents/>}/>
         <Route path="upload-files" element={<UploadFiles/>}/>
         <Route path="assign-supervisor" element={<AssignSupervisor/>}/>
-        {/* <Route path="feedback" element={<FeedbackPage/>}/> */}
+        <Route path="projects" element={<ProjectsPage/>}/>
+        <Route path="reports" element={<ReportsPage/>}/>
+        <Route path="search" element={<SearchPage/>}/>
         <Route path="notifications" element={<NotificationsPage/>}/>
         <Route path="teachers" element={<ManageTeachers/>}/>
         <Route path="deadlines" element={<DeadlinesPage/>}/>
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
 
       {/* Student Routes */}
@@ -116,11 +139,50 @@ const App = () => {
         <Route path="submit-proposal" element={<SubmitProposal/>}/>
         <Route path="supervisor" element={<SupervisorPage/>}/>
         <Route path="deadlines" element={<DeadlinesPage/>}/>
-        <Route path="projects" element={<ProjectsPage/>}/>
         <Route path="upload-files" element={<UploadFiles/>}/>
+        <Route path="search" element={<SearchPage/>}/>
         <Route path="notifications" element={<NotificationsPage/>}/>
         <Route path="feedback" element={<FeedbackPage/>}/>
+        <Route path="chat/:projectId" element={<ChatPage/>}/>
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
+
+
+      {/* Teacher Routes */}
+      <Route path="/teacher" element={
+        <ProtectedRoute allowedRoles={["Teacher"]}>
+          <DashboardLayout userRole={"Teacher"}/>
+        </ProtectedRoute>
+      }
+      >
+        <Route index element={<TeacherDashboard/>}/>
+        <Route path="pending-requests" element={<PendingRequests/>}/>
+        <Route path="assigned-students" element={<AssignedStudents/>}/>
+        <Route path="files" element={<TeacherFiles/>}/>
+        <Route path="messages" element={<TeacherMessages/>}/>
+        <Route path="search" element={<SearchPage/>}/>
+        <Route path="notifications" element={<NotificationsPage/>}/>
+        <Route path="deadlines" element={<DeadlinesPage/>}/>
+        <Route path="chat/:projectId" element={<ChatPage/>}/>
+        <Route path="profile" element={<ProfilePage />} />
+      </Route>
+
+      {/* default redirect */}
+      <Route path="/" element={<Navigate to={"/login"} replace/>}/>
+      <Route path="/unauthorized" element={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-slate-800 mb-4">Unauthorized Access</h1>
+            <p className="text-slate-600 mb-4">
+              You don't have permission to access this page.
+            </p>
+            <button onClick={()=> window.history.back()} className="btn-primary">
+              Go Back
+            </button>
+          </div>
+        </div>
+      }/>
+      <Route path="*" element={<NotFound/>}/>
     </Routes>
     <ToastContainer theme="dark"/>
     </BrowserRouter>

@@ -48,16 +48,16 @@ const ForgotPasswordPage = () => {
                   />
                 </svg>
             </div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="heading-lg">
               Check your email
             </h1>
-            <p className="text-slate-600 mt-2">
+            <p className="text-body mt-2">
               We've sent a password link to your email address.
             </p>
           </div>
           <div className="card">
             <div className="text-center">
-              <p className="text-slate-700 mb-4">
+              <p className="text-body mb-4">
                 If an account with <strong>{email}</strong> exists, you will 
                 receive a password reset email shortly.
               </p>
@@ -89,8 +89,8 @@ const ForgotPasswordPage = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full mb-4">
             <KeyRound className="w-8 h-8 text-white"/>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">Forgot Password?</h1>
-          <p className="text-slate-600 mt-2">Enter your email and we'll send you a link to reset your password.</p>
+          <h1 className="heading-lg">Forgot Password?</h1>
+          <p className="text-body mt-2">Enter your email and we'll send you a link to reset your password.</p>
         </div>
   
         {/* Forgot Password Form */}
@@ -107,7 +107,7 @@ const ForgotPasswordPage = () => {
   
             {/* Email Address */}
             <div>
-              <label className="label">Email Address</label>
+              <label className="text-tiny">Email Address</label>
               <input type="email" name="email" value={email} onChange={(e)=>{
                 setEmail(e.target.value);
                 if(error) setError("");
@@ -136,8 +136,8 @@ const ForgotPasswordPage = () => {
             </button>
           </form>
           <div className="mt-6 text-center">
-            <p className="text-sm text-slate-600">
-              Remember your password? <Link to={"/login"} className="text-blue-600 hover:text-blue-500 font-medium">
+            <p className="text-body">
+              Remember your password? <Link to={"/login"} className="text-blue-600 hover:text-blue-500 font-bold">
               Sign in</Link>
             </p>
           </div>

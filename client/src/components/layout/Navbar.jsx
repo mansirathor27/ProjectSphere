@@ -93,10 +93,10 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
               <div className="hidden md:block">
-                <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                <h1 className="heading-md">
                   ProjectSphere
                 </h1>
-                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest -mt-0.5">
+                <p className="text-tiny text-blue-600 dark:text-blue-400">
                   FYP Management
                 </p>
               </div>
@@ -115,12 +115,12 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearch}
                 placeholder="Search projects, students or keywords..."
-                className="w-full h-12 bg-slate-100/50 dark:bg-slate-800/50 border-2 border-transparent rounded-2xl pl-12 pr-4 text-sm font-medium outline-none transition-all duration-300 focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
+                className="w-full h-12 bg-slate-100/50 dark:bg-slate-800/50 border-2 border-transparent rounded-2xl pl-12 pr-4 text-body outline-none transition-all duration-300 focus:bg-white dark:focus:bg-slate-900 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
               />
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <span className="px-2 py-1 text-[10px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg">⌘ K</span>
+                <span className="px-2 py-1 text-tiny border border-slate-200 dark:border-slate-700 rounded-lg">⌘ K</span>
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             >
               <Bell size={20} className="group-hover:rotate-12 transition-transform" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-black text-white border-2 border-white dark:border-slate-900 shadow-lg animate-in zoom-in-50">
+                <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 text-tiny !text-white border-2 border-white dark:border-slate-900 shadow-lg animate-in zoom-in-50">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -159,15 +159,15 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                     authUser?.role
                   )} shadow-lg scale-100 group-active:scale-90 transition-all`}
                 >
-                  <span className="text-sm font-black text-white">
+                  <span className="text-body-bold text-white">
                     {getInitials(authUser?.name)}
                   </span>
                 </div>
                 <div className="hidden text-left xl:block">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                  <p className="text-body-bold leading-tight">
                     {authUser?.name}
                   </p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mt-0.5">
+                  <p className="text-tiny text-blue-600 dark:text-blue-400 mt-0.5">
                     {authUser?.role}
                   </p>
                 </div>
@@ -191,11 +191,11 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                     <div className="px-4 py-4 mb-2 bg-gradient-to-br from-blue-600/10 to-transparent rounded-2xl border border-blue-500/10">
                       <div className="flex items-center gap-4">
                         <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${getRoleColor(authUser?.role)} shadow-lg`}>
-                          <span className="text-lg font-black text-white">{getInitials(authUser?.name)}</span>
+                          <span className="heading-sm !text-white">{getInitials(authUser?.name)}</span>
                         </div>
                         <div className="min-w-0">
-                          <p className="font-bold text-slate-900 dark:text-white truncate">{authUser?.name}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{authUser?.email}</p>
+                          <p className="text-body-bold truncate">{authUser?.name}</p>
+                          <p className="text-body truncate opacity-60">{authUser?.email}</p>
                         </div>
                       </div>
                     </div>
@@ -204,14 +204,14 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                     <div className="space-y-1">
                       <Link
                         to={`/${(authUser?.role || "student").toLowerCase()}/profile`}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
+                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-body-bold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-bold"
                         onClick={() => setProfileDropdownOpen(false)}
                       >
                         <User size={18} />
                         <span>Profile Settings</span>
                       </Link>
                       <button
-                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-body-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all font-bold"
                         onClick={handleLogout}
                       >
                         <LogOut size={18} />

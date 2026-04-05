@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getTeacherDashboardStats } from "../../store/slices/teacherSlice";
+import { getTeacherDashboardStats, getAssignedStudents } from "../../store/slices/teacherSlice";
 import { getNotifications } from "../../store/slices/notificationSlice";
 import { 
   CheckCircle, 
@@ -11,21 +11,52 @@ import {
   ArrowUpRight, 
   GraduationCap,
   Bell,
-  ArrowRight
+  ArrowRight,
+  Target,
+  FileText,
+  Activity
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Link } from "react-router-dom";
+import { connectSocket, getSocket } from "../../lib/socket";
 
 const TeacherDashboard = () => {
   const dispatch = useDispatch();
-  const { dashboardStats, loading: teacherLoading } = useSelector((state) => state.teacher);
+  const { dashboardStats, assignedStudents, loading: teacherLoading } = useSelector((state) => state.teacher);
   const { list: notifications, loading: notifLoading } = useSelector((state) => state.notification);
   const { mode } = useSelector((state) => state.theme);
 
+  const { authUser } = useSelector((state) => state.auth);
+
   useEffect(() => {
     dispatch(getTeacherDashboardStats());
+    dispatch(getAssignedStudents());
     dispatch(getNotifications());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (authUser?._id) {
+      connectSocket(authUser._id);
+      const socket = getSocket();
+
+      const refresh = () => {
+        dispatch(getTeacherDashboardStats());
+        dispatch(getNotifications());
+      };
+
+      socket.on("new_feedback", refresh);
+      socket.on("project_updated", refresh);
+      socket.on("new_notification", refresh);
+      socket.on("new_request", refresh);
+
+      return () => {
+        socket.off("new_feedback", refresh);
+        socket.off("project_updated", refresh);
+        socket.off("new_notification", refresh);
+        socket.off("new_request", refresh);
+      };
+    }
+  }, [authUser?._id, dispatch]);
 
   const latestNotifications = useMemo(() => (notifications || []).slice(0, 6), [notifications]);
 
@@ -35,23 +66,23 @@ const TeacherDashboard = () => {
     {
       title: "Assigned Students",
       value: dashboardStats?.assignedStudents || 0,
-      iconWrap: "bg-blue-600/10 text-blue-600 dark:text-blue-400",
+      iconWrap: "bg-blue-600/10 text-blue-600",
       Icon: Users,
-      trend: "Active Batch",
+      trend: "Mentorship Batch",
     },
     {
       title: "Pending Requests",
       value: dashboardStats?.totalPendingRequests || 0,
-      iconWrap: "bg-amber-600/10 text-amber-600 dark:text-amber-400",
+      iconWrap: "bg-amber-600/10 text-amber-600",
       Icon: Clock,
-      trend: "Needs Action",
+      trend: "Attention Req.",
     },
     {
-      title: "Completed Projects",
+      title: "Finalized Projects",
       value: dashboardStats?.completedProjects || 0,
-      iconWrap: "bg-emerald-600/10 text-emerald-600 dark:text-emerald-400",
+      iconWrap: "bg-emerald-600/10 text-emerald-600",
       Icon: CheckCircle,
-      trend: "Successfully Finalized",
+      trend: "Submission End",
     },
   ];
 
@@ -69,93 +100,87 @@ const TeacherDashboard = () => {
     const p = (priority || "").toLowerCase();
     if (p === "high") return "bg-rose-500";
     if (p === "medium") return "bg-amber-500";
-    return "bg-emerald-500";
+    return "bg-blue-500";
   };
 
+  if (loading && !dashboardStats) {
+     return <div className="flex h-[80vh] items-center justify-center"><Loader className="animate-spin text-blue-600" size={40} /></div>;
+  }
+
   return (
-    <div className="mx-auto max-w-[1600px] space-y-10 pb-10">
-      {/* Premium Header Section */}
-      <section className="relative overflow-hidden premium-card !p-10 border-none">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-emerald-600/5 to-transparent pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="mx-auto max-w-[1600px] space-y-10 pb-12">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden premium-card !p-10 border-none bg-gradient-to-br from-white via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-blue-900/10 shadow-2xl shadow-blue-500/5">
+        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-blue-600/5 blur-[100px]" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest">
-              <GraduationCap size={14} />
-              Academic Supervisor Console
-            </div>
-            <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-              Teacher <span className="text-emerald-600">Dashboard</span>
+            <span className="badge-primary">Teacher Portal</span>
+            <h1 className="heading-lg">
+              Academic <span className="text-blue-600">Console</span>
             </h1>
-            <p className="max-w-xl text-lg text-slate-500 dark:text-slate-400 font-medium tracking-tight">
-              Review project proposals, monitor student milestones, and provide valuable feedback to your assigned mentees.
+            <p className="text-body-lg max-w-xl">
+               Manage project life cycles, direct student groups, and provide strategic mentorship across your assigned research programs.
             </p>
           </div>
-          <Link to="/teacher/messages" className="px-8 py-4 bg-emerald-600 text-white rounded-3xl font-black shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
-            <MessageSquare size={20} />
+          <Link to="/teacher/messages" className="btn-primary px-10 py-5 rounded-[2.5rem] shadow-2xl">
+            <MessageSquare size={22} className="animate-pulse" />
             <span>Collaboration Hub</span>
           </Link>
         </div>
       </section>
 
-      {/* KPI grid */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* KPI Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {statsCards.map((item, i) => (
-          <div key={i} className="dashboard-stats-card group">
-             <div className="flex flex-col h-full justify-between gap-4">
-              <div className="flex items-center justify-between">
-                <div className={`p-4 rounded-2xl ${item.iconWrap}`}>
-                  <item.Icon size={24} />
+          <div key={i} className="premium-card p-6 flex flex-col justify-between min-h-[180px] hover:translate-y-[-4px] transition-all duration-300 group">
+             <div className="flex items-center justify-between mb-4">
+                <div className={`h-14 w-14 rounded-2xl ${item.iconWrap} flex items-center justify-center`}>
+                  <item.Icon size={28} />
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600">
-                  {item.trend}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{item.title}</p>
-                <div className="flex items-end gap-2">
-                  <h3 className="text-4xl font-black text-slate-900 dark:text-white tabular-nums">
-                    {teacherLoading ? '...' : item.value}
-                  </h3>
-                  <ArrowUpRight size={20} className="text-slate-200 dark:text-slate-700 mb-2" />
-                </div>
-              </div>
-            </div>
+                <span className="text-tiny text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors">{item.trend}</span>
+             </div>
+             <div>
+                <p className="text-tiny mb-1">{item.title}</p>
+                 <div className="flex items-end justify-between">
+                    <h4 className="heading-lg tabular-nums">{item.value}</h4>
+                    <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                      <ArrowUpRight size={18} className="text-slate-400" />
+                    </div>
+                 </div>
+             </div>
           </div>
         ))}
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main Feed */}
+        {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-8">
-          <div className="premium-card">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Mentorship Pulse</h3>
-              <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                Live Updates
-              </div>
+          
+          {/* Mentorship Pulse */}
+          <div className="premium-card bg-white dark:bg-slate-900">
+            <div className="flex items-center justify-between mb-10 pb-6 border-b border-slate-100 dark:border-slate-800/50">
+               <h3 className="heading-md flex items-center gap-3">
+                 <Activity className="text-blue-600" size={24} />
+                 Mentorship Pulse
+               </h3>
+               <div className="badge-primary bg-blue-600/5 text-blue-600 animate-pulse">
+                 Live Updates
+               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-10">
               {latestNotifications.length > 0 ? (
                 latestNotifications.map((n) => (
-                  <div key={n._id} className="group relative pl-8 pb-8 border-l-2 border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
-                    <div className={`absolute left-[-9px] top-0 w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 ${getBulletColor(n.type, n.priority)} shadow-lg scale-100 group-hover:scale-125 transition-transform`} />
-                    <div className="p-6 premium-card !p-6 !rounded-[2rem] transition-all hover:bg-blue-600/[0.02] group-hover:-translate-y-1">
-                      <p className="text-base font-bold text-slate-800 dark:text-white leading-relaxed mb-4">{n.message}</p>
+                  <div key={n._id} className="group relative pl-10 pb-10 border-l border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+                    <div className={`absolute left-[-6px] top-0 w-3 h-3 rounded-full ${getBulletColor(n.type, n.priority)} shadow-xl shadow-blue-500/20 group-hover:scale-150 transition-all`} />
+                    <div className="bg-slate-50/50 dark:bg-slate-800/20 rounded-[2.5rem] p-6 border border-slate-100 dark:border-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-none">
+                      <p className="text-body-bold mb-4 line-clamp-2 italic opacity-90">"{n.message}"</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">
-                            {n.type || "System"}
-                          </span>
-                          <span className="text-[10px] font-black text-slate-400 uppercase">
-                            {new Date(n.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </span>
+                          <span className="text-tiny bg-white dark:bg-slate-900 px-3 py-1 rounded-lg border border-slate-100 dark:border-slate-800">{n.type || "Event"}</span>
+                          <span className="text-tiny opacity-50">{new Date(n.createdAt).toLocaleDateString()}</span>
                         </div>
-                        <Link to="/teacher/notifications" className="opacity-0 group-hover:opacity-100 p-2 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all">
+                        <Link to="/teacher/notifications" className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-110 active:scale-95 transition-all">
                           <ArrowRight size={18} />
                         </Link>
                       </div>
@@ -163,136 +188,133 @@ const TeacherDashboard = () => {
                   </div>
                 ))
               ) : (
-                <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 dark:bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400">
-                   <Bell size={48} className="mb-4 opacity-50" />
-                   <p className="font-black italic">No recent mentorship logs.</p>
+                <div className="text-center py-20 bg-slate-50/30 dark:bg-slate-900/30 rounded-[3rem] border-4 border-dashed border-slate-100 dark:border-slate-800">
+                   <Bell size={64} className="mx-auto mb-6 text-slate-200 dark:text-slate-800" />
+                   <p className="text-body font-bold italic opacity-40">Mentorship log synchronized. No alerts.</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Mentorship Progress Tracking */}
+          {/* Student Status Table */}
           <div className="premium-card">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Mentorship Progress</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-400">Target: End of Term</span>
-              </div>
+            <div className="flex items-center justify-between mb-10 overflow-hidden">
+               <h3 className="heading-md flex items-center gap-3">
+                 <Users className="text-blue-600 font-bold" size={24} />
+                 Program Participants
+               </h3>
+                <Link to="/teacher/feedback" className="text-tiny text-blue-600 font-bold hover:underline tracking-widest">In-depth feedback</Link>
             </div>
             
-            <div className="space-y-4">
-               {/* This would ideally come from the API, but for professional lookup we show a detailed UI */}
-               <div className="overflow-x-auto">
-                 <table className="w-full text-left">
-                   <thead>
-                     <tr className="border-b border-slate-100 dark:border-slate-800">
-                       <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Student</th>
-                       <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Milestone</th>
-                       <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                       <th className="pb-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Action</th>
-                     </tr>
-                   </thead>
-                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                     {[
-                       { name: "John Doe", milestone: "Literature Review", status: "Completed", color: "text-emerald-500" },
-                       { name: "Jane Smith", milestone: "System Architecture", status: "In Progress", color: "text-blue-500" },
-                       { name: "Mike Johnson", milestone: "Database Schema", status: "Delayed", color: "text-rose-500" },
-                     ].map((row, idx) => (
-                       <tr key={idx} className="group hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
-                         <td className="py-4 font-bold text-slate-800 dark:text-slate-200">{row.name}</td>
-                         <td className="py-4 text-sm font-medium text-slate-500">{row.milestone}</td>
-                         <td className={`py-4 text-xs font-black uppercase tracking-tighter ${row.color}`}>{row.status}</td>
-                         <td className="py-4">
-                           <button className="text-[10px] font-black text-blue-600 hover:underline uppercase tracking-widest">Validate</button>
+            <div className="overflow-x-auto pb-4 custom-scroll">
+               <table className="w-full text-left">
+                 <thead>
+                   <tr className="border-b border-slate-100 dark:border-slate-800/80">
+                     <th className="pb-5 text-tiny">Student / Group</th>
+                     <th className="pb-5 text-tiny">Project Context</th>
+                     <th className="pb-5 text-tiny">Lifecycle</th>
+                     <th className="pb-5 text-tiny text-center">Action</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                   {assignedStudents?.length > 0 ? assignedStudents.map((student, idx) => (
+                      <tr key={idx} className="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all">
+                         <td className="py-6">
+                            <div className="flex flex-col gap-1">
+                                <p className="text-body-bold">{student.name}</p>
+                               {student.project?.groupName && (
+                                   <span className="badge-primary bg-indigo-600/5 text-indigo-600 rounded-lg text-tiny">
+                                      GROUP: {student.project.groupName}
+                                   </span>
+                               )}
+                            </div>
                          </td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </div>
+                         <td className="py-6">
+                             <p className="text-tiny italic line-clamp-1 max-w-[200px]">
+                                {student.project?.title || "Draft Phase"}
+                             </p>
+                         </td>
+                         <td className="py-6">
+                             <span className={`text-tiny font-bold px-3 py-1 rounded-full ${
+                                student.project?.status === 'completed' ? 'bg-emerald-600/10 text-emerald-600' :
+                                student.project?.status === 'approved' ? 'bg-blue-600/10 text-blue-600' : 'bg-amber-600/10 text-amber-600'
+                             }`}>
+                                {student.project?.status || "PENDING"}
+                             </span>
+                         </td>
+                         <td className="py-6 text-center">
+                            <Link to={`/chat/${student.project?._id}`} className="inline-flex items-center justify-center p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                               <MessageSquare size={18} />
+                            </Link>
+                         </td>
+                      </tr>
+                   )) : (
+                      <tr>
+                        <td colSpan={4} className="py-20 text-center text-body font-bold italic opacity-20">Cycle initialization pending.</td>
+                      </tr>
+                   )}
+                 </tbody>
+               </table>
             </div>
           </div>
         </div>
 
-        {/* Sidebar Analytics */}
+        {/* Analytics Column */}
         <div className="lg:col-span-4 space-y-8">
-          <div className="premium-card">
-            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-8 tracking-tight">Mentees Status</h3>
-            <div className="h-[300px] w-full relative">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      innerRadius={70}
-                      outerRadius={100}
-                      paddingAngle={8}
-                      dataKey="value"
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} cornerRadius={12} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '16px', border: 'none', background: '#0f172a', color: 'white' }} 
-                      itemStyle={{ fontWeight: 'bold' }}
-                    />
-                    <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ paddingTop: '20px', fontWeight: 'black', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                 <div className="h-full flex items-center justify-center text-slate-400 font-bold italic">No mentorship data</div>
-              )}
-                {/* Central Stats */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] text-center pointer-events-none">
-                  <span className="text-4xl font-black text-slate-900 dark:text-white leading-none">
-                    {dashboardStats?.assignedStudents || 0}
-                  </span>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Total Mentees</p>
+           {/* Progress Chart */}
+           <div className="premium-card bg-white dark:bg-slate-900 border-none shadow-none">
+             <h3 className="heading-md mb-8">Strategic Distribution</h3>
+             <div className="h-[350px] relative">
+               {chartData.length > 0 ? (
+                 <ResponsiveContainer width="100%" height="100%">
+                   <PieChart>
+                     <Pie
+                       data={chartData}
+                       innerRadius={80}
+                       outerRadius={110}
+                       paddingAngle={10}
+                       dataKey="value"
+                     >
+                       {chartData.map((entry, index) => (
+                         <Cell key={`cell-${index}`} fill={entry.color} cornerRadius={12} strokeWidth={0} />
+                       ))}
+                     </Pie>
+                     <Tooltip 
+                        contentStyle={{ borderRadius: '24px', border: 'none', background: '#0e172a', p: '16px' }}
+                        itemStyle={{ fontWeight: 'black', fontSize: '10px', textTransform: 'uppercase' }}
+                     />
+                     <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontWeight: 'black', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.15em', pt: '24px' }} />
+                   </PieChart>
+                 </ResponsiveContainer>
+               ) : (
+                  <div className="h-full flex items-center justify-center opacity-20"><Target size={64} /></div>
+               )}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none mt-[-20px]">
+                   <p className="heading-lg tabular-nums">{dashboardStats?.assignedStudents || 0}</p>
+                   <p className="text-tiny opacity-50">Active Batch</p>
                 </div>
+             </div>
+           </div>
 
-                <div className="mt-12 h-[200px] w-full">
-                   <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 px-2 italic">Status Distribution</h4>
-                   <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
-                        <YAxis hide />
-                        <Tooltip 
-                            cursor={{fill: 'transparent'}}
-                            contentStyle={{borderRadius: '12px', border: 'none', background: '#0f172a', color: 'white', fontSize: '12px'}}
-                        />
-                        <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={30}>
-                            {chartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                        </Bar>
-                      </BarChart>
-                   </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-          <div className="premium-card bg-slate-950 text-white border-none overflow-hidden relative">
-            <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl opacity-50" />
-            <h3 className="text-lg font-black mb-6 tracking-tight">Strategic Overview</h3>
-            <div className="space-y-6">
-               <p className="text-sm font-medium opacity-60 leading-relaxed">
-                 You are currently directing <span className="font-black text-white">{dashboardStats?.assignedStudents || 0} research paths</span>. Ensure all project milestones are validated before the cycle end.
-               </p>
-               <div className="p-5 bg-white/5 rounded-[1.5rem] border border-white/10">
+           {/* Call to Action Card */}
+           <div className="bg-slate-950 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-950/20 border-t border-white/5">
+              <div className="absolute -right-10 -bottom-10 h-64 w-64 bg-blue-600/10 rounded-full blur-[80px]" />
+              <h3 className="heading-md text-white mb-6">Mentorship Summary</h3>
+              <p className="text-sm font-bold opacity-60 leading-relaxed mb-8 italic">
+                 Directing <span className="text-white font-bold">{dashboardStats?.assignedStudents || 0} unique projects</span> towards academic excellence. Ensure all final artifacts are synchronized before session close.
+              </p>
+              <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-3xl">
                  <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                     <GraduationCap size={24} />
-                   </div>
-                   <div className="min-w-0">
-                     <p className="text-[10px] font-black opacity-40 uppercase tracking-widest mb-1">Academic Cycle</p>
-                     <p className="text-sm font-black truncate">Final Year Session 2026</p>
-                   </div>
+                    <div className="h-14 w-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                       <GraduationCap size={28} />
+                    </div>
+                     <div>
+                        <p className="text-tiny opacity-40 uppercase tracking-widest mb-1">Academic Cycle</p>
+                        <p className="text-body-bold">Session 2024-2026</p>
+                     </div>
                  </div>
-               </div>
-            </div>
-          </div>
+              </div>
+           </div>
         </div>
       </div>
     </div>

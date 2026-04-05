@@ -44,10 +44,10 @@ const AnnouncementBanner = () => {
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-             <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">System Broadcast</span>
+             <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">System Broadcast</span>
              <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-ping" />
           </div>
-          <h4 className="text-sm font-black text-slate-900 dark:text-white truncate uppercase tracking-tight">{current.title}</h4>
+          <h4 className="text-sm font-bold text-slate-800 dark:text-white truncate uppercase tracking-tight">{current.title}</h4>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{current.message}</p>
         </div>
 

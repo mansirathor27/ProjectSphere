@@ -133,41 +133,38 @@ const UploadFiles = () => {
   ];
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-8 pb-2">
+    <div className="mx-auto max-w-[1600px] space-y-8 pb-12">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-blue-50 via-white to-cyan-50/60 p-8 shadow-xl shadow-slate-200/40 dark:border-slate-700/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-blue-950/40 dark:shadow-none">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-blue-400/10 blur-3xl dark:bg-blue-500/10" />
-        <div className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-500/10" />
-        <div className="relative">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                File Management
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                Upload Project Files
-              </h1>
-              <p className="max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
-                Upload your project documents including reports, presentations, and code files. All files are securely stored and accessible to your supervisor.
-              </p>
+      <section className="relative overflow-hidden premium-card !p-8 border-none shadow-xl group">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-blue-600/5 to-transparent rounded-full blur-[100px] -z-10" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-blue-600/10 border border-blue-600/20 text-tiny text-blue-600">
+              <Upload size={12} />
+              Artifact Management
             </div>
-            {project?.files?.length > 0 && (
-              <div className="flex shrink-0 flex-wrap gap-2">
-                <span className="rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 text-xs font-medium text-slate-600 shadow-sm backdrop-blur-sm dark:border-slate-600 dark:bg-slate-800/80 dark:text-slate-300">
-                  <File className="inline h-3 w-3 mr-1" />
-                  {project.files.length} files uploaded
-                </span>
-              </div>
-            )}
+            <h1 className="heading-lg">
+              Upload Project Files
+            </h1>
+            <p className="max-w-xl text-body">
+              Upload your project documents including reports, presentations, and code files. All files are securely stored and accessible to your supervisor.
+            </p>
           </div>
+          {project?.files?.length > 0 && (
+            <div className="flex shrink-0">
+              <span className="rounded-xl border border-slate-200/80 bg-white/10 px-4 py-2 text-xs font-semibold text-slate-500 shadow-sm backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-400">
+                {project.files.length} Files Uploaded
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Upload Categories */}
       <section>
         <div className="mb-4">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Upload Files</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Select files to upload to your project</p>
+          <h2 className="heading-sm">Upload Files</h2>
+          <p className="mt-1 text-body">Select files to upload to your project</p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {uploadCategories.map((cat, idx) => {
@@ -182,10 +179,10 @@ const UploadFiles = () => {
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10">
                     <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">{cat.title}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{cat.description}</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Supports: {cat.formats}</p>
-                  <label className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                  <h3 className="heading-sm mb-1">{cat.title}</h3>
+                  <p className="text-body font-bold">{cat.description}</p>
+                  <p className="text-tiny font-bold uppercase tracking-widest mt-2">Supports: {cat.formats}</p>
+                  <label className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-tiny font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 uppercase tracking-widest">
                     <Upload className="h-4 w-4" />
                     Choose File
                     <input
@@ -209,7 +206,7 @@ const UploadFiles = () => {
             <button
               onClick={handleUpload}
               disabled={isUploading}
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-3 text-tiny font-bold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 uppercase tracking-widest"
             >
               {isUploading ? (
                 <>
@@ -231,7 +228,7 @@ const UploadFiles = () => {
       {uploadSuccess && (
         <div className="flex items-center gap-3 rounded-2xl bg-green-50 p-4 text-green-800 dark:bg-green-900/20 dark:text-green-400">
           <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-          <p className="text-sm font-medium">Files uploaded successfully!</p>
+          <p className="text-body-bold">Files uploaded successfully!</p>
         </div>
       )}
 
@@ -239,7 +236,7 @@ const UploadFiles = () => {
       {selectedFiles.length > 0 && (
         <section className="rounded-3xl border border-slate-200/90 bg-white/90 shadow-xl shadow-slate-200/25 dark:border-slate-700/80 dark:bg-slate-900/70 dark:shadow-none">
           <div className="p-6 sm:p-8">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Ready to Upload</h3>
+            <h3 className="heading-sm mb-4">Ready to Upload</h3>
             <div className="space-y-3">
               {selectedFiles.map((file) => {
                 const { Icon, color } = getFileIcon(file.name);
@@ -253,8 +250,8 @@ const UploadFiles = () => {
                         <Icon className={`h-5 w-5 ${color}`} />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-800 dark:text-slate-200">{file.name}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-body-bold">{file.name}</p>
+                        <p className="text-tiny font-bold uppercase tracking-widest opacity-60">
                           {(file.size / (1024 * 1024)).toFixed(2)} MB
                         </p>
                       </div>
@@ -275,17 +272,17 @@ const UploadFiles = () => {
 
       {/* Uploaded Files List */}
       <section className="rounded-3xl border border-slate-200/90 bg-white/90 shadow-xl shadow-slate-200/25 dark:border-slate-700/80 dark:bg-slate-900/70 dark:shadow-none">
-        <div className="p-6 sm:p-8">
-          <div className="mb-6 border-b border-slate-200/80 pb-5 dark:border-slate-700/80">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Uploaded Files</h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage your uploaded project files</p>
-          </div>
+          <div className="p-6 sm:p-8">
+            <div className="mb-6 border-b border-slate-200/80 pb-5 dark:border-slate-700/80">
+              <h3 className="heading-sm">Uploaded Files</h3>
+              <p className="mt-1 text-body">Manage your uploaded project files</p>
+            </div>
 
           {(project?.files || []).length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center dark:border-slate-700 dark:bg-slate-950/30">
               <FilePlus className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500" />
-              <p className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-400">No files uploaded yet</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-500">Upload your project files using the options above</p>
+              <p className="mt-3 text-body-bold">No files uploaded yet</p>
+              <p className="mt-1 text-tiny">Upload your project files using the options above</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -301,15 +298,15 @@ const UploadFiles = () => {
                         <Icon className={`h-5 w-5 ${color}`} />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-800 dark:text-slate-200">{file.originalName}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{file.fileType || "File"}</p>
+                        <p className="text-body-bold">{file.originalName}</p>
+                        <p className="text-tiny font-bold uppercase tracking-widest opacity-60">{file.fileType || "File"}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       
                       <button
                         onClick={() => handleDownloadFile(file)}
-                        className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-3 py-1.5 text-sm font-medium text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                        className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-3 py-1.5 text-tiny font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg uppercase tracking-widest"
                       >
                         <Download className="h-3 w-3" />
                         Download

@@ -57,25 +57,25 @@ const PendingRequests = () => {
   }) || [];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-10">
+    <div className="mx-auto max-w-[1600px] space-y-8 pb-12">
       {/* Header Section */}
-      <section className="premium-card relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl -z-10" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+      <section className="relative overflow-hidden premium-card !p-8 border-none shadow-xl group">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-l from-blue-600/5 to-transparent rounded-full blur-[100px] -z-10" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 border border-blue-600/20 text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-blue-600/10 border border-blue-600/20 text-tiny text-blue-600 uppercase tracking-widest">
                <ShieldCheck size={12} />
                Supervision Desk
              </div>
-             <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">Pending Requests</h1>
-             <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl">
+             <h1 className="heading-lg">Pending Requests</h1>
+             <p className="text-body max-w-xl">
                Review and respond to supervision requests from potential project groups.
              </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0">
              <div className="px-6 py-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Pending</span>
-                <span className="text-xl font-bold text-blue-600">{list.filter(r => r.status === 'pending').length}</span>
+                <span className="text-tiny mb-1">Incoming</span>
+                <span className="heading-md !text-blue-600">{list.filter(r => r.status === 'pending').length}</span>
              </div>
           </div>
         </div>
@@ -88,7 +88,7 @@ const PendingRequests = () => {
           <input
             type="text"
             placeholder="Search students or projects..."
-            className="w-full pl-12 pr-6 py-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700 dark:text-white"
+            className="w-full pl-12 pr-6 py-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-700 dark:text-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -109,7 +109,7 @@ const PendingRequests = () => {
       </div>
 
       {/* Requests Content */}
-      <div className="space-y-6">
+      <div className="mx-auto max-w-[1600px] space-y-8 pb-12">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
              <ScalingLoader />
@@ -130,8 +130,8 @@ const PendingRequests = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{req.student?.name}</h3>
-                        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${
+                        <h3 className="heading-md">{req.student?.name}</h3>
+                        <span className={`px-3 py-1 rounded-lg text-tiny font-bold uppercase tracking-widest ${
                           req.status === 'pending' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' :
                           req.status === 'accepted' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' :
                           'bg-rose-100 text-rose-600 dark:bg-rose-900/30'
@@ -139,7 +139,7 @@ const PendingRequests = () => {
                           {req.status}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      <div className="flex items-center gap-4 text-tiny">
                          <span className="flex items-center gap-1.5"><Mail size={14} /> {req.student?.email}</span>
                          <span className="flex items-center gap-1.5"><Clock size={14} /> {new Date(req.createdAt).toLocaleDateString()}</span>
                       </div>
@@ -147,7 +147,7 @@ const PendingRequests = () => {
                       <div className="mt-5 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 inline-block max-w-lg">
                         <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                           <FileText size={18} className="text-blue-500" />
-                          <span className="font-bold text-sm tracking-tight">{project?.title || "Untitled Project"}</span>
+                          <span className="text-body-bold tracking-tight">{project?.title || "Untitled Project"}</span>
                         </div>
                       </div>
                     </div>
