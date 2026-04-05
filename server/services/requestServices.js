@@ -48,7 +48,7 @@ export const acceptRequest = async(requestId, supervisorId)=> {
     });
 
     // ✅ 3. assign supervisor to project
-    const project = await Project.findOne({ student: request.student._id });
+    const project = await Project.findOne({ students: request.student._id });
 
     if (project) {
         project.supervisor = supervisorId;

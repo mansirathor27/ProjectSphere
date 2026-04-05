@@ -24,11 +24,13 @@ const feedbackSchema = new mongoose.Schema({
     }     
 );
 const projectSchema = new mongoose.Schema({
-    student: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: [true, "Student ID is required"],
-    },
+    students: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: [true, "At least one student is required"],
+        }
+    ],
     supervisor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -76,12 +78,31 @@ const projectSchema = new mongoose.Schema({
     deadline: {
         type: Date,
     },
+    milestones: [
+        {
+            title: { type: String, required: true },
+            description: { type: String },
+            status: { type: String, enum: ["pending", "completed"], default: "pending" },
+            completedAt: { type: Date },
+        }
+    ],
+    tags: [
+        {
+            type: String,
+            trim: true,
+        }
+    ],
+    groupName: {
+        type: String,
+        trim: true,
+        maxLength: [100, "Group Name cannot be more than 100 characters"],
+    },
 }, {
     timestamps: true,
 });
 
 // Indexing for better query performance
-projectSchema.index({student: 1});
+projectSchema.index({students: 1});
 projectSchema.index({supervisor: 1});
 projectSchema.index({status: 1});
 

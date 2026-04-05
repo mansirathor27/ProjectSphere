@@ -25,3 +25,42 @@ export const downloadFile = asyncHandler(async(req, res, next) =>{
 
     fileServices.streamDownload(file.fileUrl, res, file.originalName);
 });
+
+export const getProject = asyncHandler(async (req, res, next) => {
+    const { projectId } = req.params;
+    const project = await projectService.getProjectById(projectId);
+    
+    if (!project) {
+        return next(new ErrorHandler("Project not found", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: { project },
+    });
+});
+
+export const updateGroupName = asyncHandler(async (req, res, next) => {
+    const { projectId } = req.params;
+    const { groupName } = req.body;
+    const userId = req.user._id.toString();
+
+    const project = await projectService.getProjectById(projectId);
+    if (!project) return next(new ErrorHandler("Project not found", 404));
+
+    // Only allow students assigned to this project or admin to update group name
+    const isStudentInProject = project.students.some(s => s._id.toString() === userId);
+    const isAdmin = req.user.role === "Admin";
+
+    if (!isStudentInProject && !isAdmin) {
+        return next(new ErrorHandler("Not authorized to update group name", 403));
+    }
+
+    const updatedProject = await projectService.updateGroupName(projectId, groupName);
+
+    res.status(200).json({
+        success: true,
+        data: { project: updatedProject },
+        message: "Group name updated successfully",
+    });
+});

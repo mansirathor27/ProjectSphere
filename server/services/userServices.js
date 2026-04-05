@@ -43,11 +43,11 @@ export const getAllUsers = async() =>{
 export const assignSupervisorDirectly = async(studentId, supervisorId)=>{
     const student = await User.findOne({_id: studentId, role: "Student"});
     const supervisor = await User.findOne({_id: supervisorId, role: "Teacher"});
-    if(!student || !teacher){
+    if(!student || !supervisor){
         throw new Error("Student or supervisor not found");
     }
-    if(!supervisor.hasCapacity()){
-        throw new Error("")
+    if(supervisor.assignedStudents?.length >= supervisor.maxStudents){
+        throw new Error("Supervisor has already reached maximum capacity");
     }
 
     student.supervisor = supervisorId;

@@ -9,6 +9,7 @@ router.get("/requests", isAuthenticated, isAuthorized("Teacher"), getRequests);
 router.put("/requests/:requestId/accept", isAuthenticated, isAuthorized("Teacher"), acceptRequest);
 router.put("/requests/:requestId/reject", isAuthenticated, isAuthorized("Teacher"), rejectRequest);
 router.post("/feedback/:projectId", isAuthenticated, isAuthorized("Teacher"), addFeedback);
+router.get("/feedback/:projectId", isAuthenticated, isAuthorized("Teacher"), addFeedback); // Fallback or view feedback
 router.post("/mark-complete/:projectId", isAuthenticated, isAuthorized("Teacher"), markComplete);
 router.get("/assigned-students", isAuthenticated, isAuthorized("Teacher"), getAssignedStudents);
 router.get("/download/:projectId/:fileId", isAuthenticated, isAuthorized("Teacher"), downloadFile);

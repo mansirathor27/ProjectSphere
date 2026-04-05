@@ -24,7 +24,7 @@ const deadlineSchema = new mongoose.Schema({
         trim: true,
         maxLength: [500, "Message cannot exceed 500 characters"],
     },
-    Project: {
+    project: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Project",
         default: null,

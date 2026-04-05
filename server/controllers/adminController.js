@@ -124,7 +124,14 @@ export const getAllUsers = asyncHandler(async (req, res, next) =>{
 
 
 export const getAllProjects = asyncHandler(async(req, res, next) => {
-    const  projects = await projectService.getAllProjects();
+    let projects;
+    if (req.user.role === "Teacher") {
+        projects = await Project.find({ supervisor: req.user._id })
+            .populate("students", "name email department")
+            .populate("supervisor", "name email");
+    } else {
+        projects = await projectService.getAllProjects();
+    }
 
     res.json({
         success: true,
@@ -164,43 +171,113 @@ export const getDashboardStats = asyncHandler(async(req, res, next) => {
 });
 
 export const assignSupervisor = asyncHandler(async(req, res, next)=>{
-    const { studentId, supervisorId} = req.body;
-    if(!studentId, supervisorId){
+    const { studentId, supervisorId, projectId } = req.body;
+    if(!studentId || !supervisorId){
         return next(new ErrorHandler("Student ID and Supervisor ID are required", 400));
     }
 
-    const project = await Project.fidOne({student: studentId});
+    let project;
+    if (projectId) {
+        project = await Project.findById(projectId).populate("students", "name email");
+    } else {
+        project = await Project.findOne({ students: studentId }).populate("students", "name email");
+    }
+
     if(!project){
         return next(new ErrorHandler("Project not found.", 404));
     }
     if(project.supervisor !== null){
-        return next(new ErrorHandler("Supervisor alreasy assigned", 400));
+        return next(new ErrorHandler("Supervisor already assigned", 400));
     }
+    
     if(project.status !== "approved"){
-        return next(new ErrorHandler("Project not approved yet.", 400));
-    }else if(project.status === "pending" || project.status === "rejected"){
-        return next(new ErrorHandler("Project is in pending state or rejected.", 400));
+        return next(new ErrorHandler("Project must be approved before assigning a supervisor.", 400));
     }
 
-    const {student, supervisor} = await userServices.assignSupervisorDirectly(studentId, supervisorId);
-    project.supervisor = supervisor;
-    await project.save();
+    const supervisor = await User.findOne({ _id: supervisorId, role: "Teacher" });
+    if (!supervisor) {
+        return next(new ErrorHandler("Supervisor not found", 404));
+    }
 
-    await notificationServices.notifyUser(studentId, `You have been assigned a supervisor ${supervisor.name}`,
-        "approval",
-        "/students/status",
-        "low"
-    );
-    await notificationServices.notifyUser(supervisorId, `The student ${student.name} has been officially
-        assigned to you for FYP supervision.` ,
+    // Check capacity for the whole group
+    if (supervisor.assignedStudents.length + project.students.length > supervisor.maxStudents) {
+        return next(new ErrorHandler(`Supervisor only has ${supervisor.maxStudents - supervisor.assignedStudents.length} slots left, but this group has ${project.students.length} students.`, 400));
+    }
+
+    // Assign to all students in project
+    for (const studentRef of project.students) {
+        const sId = studentRef._id || studentRef;
+        await User.findByIdAndUpdate(sId, { supervisor: supervisorId });
+        supervisor.assignedStudents.push(sId);
+        
+        await notificationServices.notifyUser(sId, `You have been assigned a supervisor: ${supervisor.name}`,
+            "approval",
+            "/student/supervisor",
+            "low"
+        );
+    }
+    
+    project.supervisor = supervisorId;
+    await project.save();
+    await supervisor.save();
+
+    await notificationServices.notifyUser(supervisorId, `The group project "${project.title}" has been officially assigned to you for FYP supervision.` ,
         "general",
-        "/teachers/status",
+        "/teacher/assigned-students",
         "low"
      );
 
      res.status(200).json({
         success: true,
-        message: "Supervisor assigned successfully",
-        data: {student, supervisor},
+        message: "Supervisor assigned successfully to the entire group",
+        data: { project, supervisor },
      });
 });
+
+export const getAdminSupervisorRequests = asyncHandler(async (req, res, next) => {
+    const requests = await SupervisorRequest.find()
+        .populate("student", "name email department")
+        .populate("supervisor", "name email department")
+        .populate("project", "title status")
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({
+        success: true,
+        data: { requests },
+    });
+});
+
+export const approveProject = asyncHandler(async(req, res, next) => {
+    const { id } = req.params;
+    const project = await Project.findByIdAndUpdate(
+        id,
+        { status: "approved" },
+        { new: true, runValidators: true }
+    );
+    if (!project) {
+        return next(new ErrorHandler("Project not found", 404));
+    }
+    res.status(200).json({
+        success: true,
+        message: "Project approved successfully",
+        data: { project },
+    });
+});
+
+export const rejectProject = asyncHandler(async(req, res, next) => {
+    const { id } = req.params;
+    const project = await Project.findByIdAndUpdate(
+        id,
+        { status: "rejected" },
+        { new: true, runValidators: true }
+    );
+    if (!project) {
+        return next(new ErrorHandler("Project not found", 404));
+    }
+    res.status(200).json({
+        success: true,
+        message: "Project rejected successfully",
+        data: { project },
+    });
+});
+

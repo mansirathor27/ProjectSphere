@@ -56,7 +56,12 @@ export const getUser = asyncHandler(async (req, res, next)=> {
 export const forgotPassword = asyncHandler(async (req, res, next)=> {
     const user = await User.findOne({email: req.body.email});
     if(!user){
-        return next(new ErrorHandler("User not found with this email",404));
+        const err = new ErrorHandler("User not found with this email", 404);
+        if (typeof next === "function") return next(err);
+        return res.status(err.statusCode).json({
+            success: false,
+            message: err.message,
+        });
     }
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
@@ -77,7 +82,12 @@ export const forgotPassword = asyncHandler(async (req, res, next)=> {
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
         await user.save({ validateBeforeSave: false});
-        return next(new ErrorHandler(error.message || "Cannot send email",500));
+        const err = new ErrorHandler(error.message || "Cannot send email", 500);
+        if (typeof next === "function") return next(err);
+        return res.status(err.statusCode).json({
+            success: false,
+            message: err.message,
+        });
     }
 });
 export const resetPassword = asyncHandler(async (req, res, next)=> {
@@ -88,13 +98,28 @@ export const resetPassword = asyncHandler(async (req, res, next)=> {
         resetPasswordExpire: { $gt: Date.now() },
     });
     if(!user){
-        return next(new ErrorHandler("Invalid or expired reset token",400));
+        const err = new ErrorHandler("Invalid or expired reset token", 400);
+        if (typeof next === "function") return next(err);
+        return res.status(err.statusCode).json({
+            success: false,
+            message: err.message,
+        });
     }
     if(!req.body.password || !req.body.confirmPassword){
-        return next(new ErrorHandler("Please provide both password and confirm password",400));
+        const err = new ErrorHandler("Please provide both password and confirm password", 400);
+        if (typeof next === "function") return next(err);
+        return res.status(err.statusCode).json({
+            success: false,
+            message: err.message,
+        });
     }
     if(req.body.password !== req.body.confirmPassword){
-        return next(new ErrorHandler("Passwords do not match",400));
+        const err = new ErrorHandler("Passwords do not match", 400);
+        if (typeof next === "function") return next(err);
+        return res.status(err.statusCode).json({
+            success: false,
+            message: err.message,
+        });
     }
 
     user.password = req.body.password;
@@ -102,4 +127,28 @@ export const resetPassword = asyncHandler(async (req, res, next)=> {
     user.resetPasswordExpire = undefined; 
     await user.save();
     generateToken(user, 200, "Password reset successful", res);
+});
+
+export const updateProfile = asyncHandler(async (req, res, next) => {
+    const { name, email, department, experties, bio, portfolioUrl } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+    }
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (department !== undefined) user.department = department;
+    if (bio !== undefined) user.bio = bio;
+    if (portfolioUrl !== undefined) user.portfolioUrl = portfolioUrl;
+    if (experties !== undefined) user.experties = Array.isArray(experties) ? experties : experties.split(",").map(s => s.trim());
+
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        user,
+    });
 });

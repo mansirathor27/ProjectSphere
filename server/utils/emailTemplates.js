@@ -57,3 +57,25 @@ export function generateRequestRejectedTemplate(supervisorName) {
     </div>
   `;
 }
+
+export function generateRequestSentTemplate(studentName, projectTitle) {
+  return `
+    <div style="font-family: Arial; padding:20px; background:#fff; border:1px solid #ddd; border-radius:8px;">
+      <h2 style="color:#3b82f6;">📩 New Supervisor Request</h2>
+      <p>Student <strong>${studentName}</strong> has sent you a supervisor request for the project:</p>
+      <p><strong>${projectTitle}</strong></p>
+      <p>Please log in to your dashboard to review it.</p>
+    </div>
+  `;
+}
+
+export function generateFeedbackGivenTemplate(supervisorName, feedbackTitle) {
+  return `
+    <div style="font-family: Arial; padding:20px; background:#fff; border:1px solid #ddd; border-radius:8px;">
+      <h2 style="color:#8b5cf6;">💬 New Feedback Received</h2>
+      <p>Your supervisor <strong>${supervisorName}</strong> has left new feedback titled:</p>
+      <p><strong>${feedbackTitle}</strong></p>
+      <p>Log in to view the details.</p>
+    </div>
+  `;
+}

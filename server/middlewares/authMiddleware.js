@@ -21,10 +21,12 @@ export const isAuthenticated = asyncHandler(async (req, res, next) =>{
 export const isAuthorized = (...roles) => {
   return (req, res, next) => {
     const userRole = req.user?.role?.toLowerCase();
-
     const allowed = roles.map(r => r.toLowerCase());
 
+    console.log(`[DEBUG] Authorization check: user role -> ${userRole}, allowed roles -> ${allowed}`);
+
     if (!allowed.includes(userRole)) {
+      console.log(`[DEBUG] Authorization failed: ${userRole} not in ${allowed}`);
       return res.status(403).json({
         success: false,
         message: "Forbidden",

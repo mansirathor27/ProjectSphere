@@ -11,6 +11,9 @@ import notificationRouter from "./router/notificationRoutes.js";
 import projectRouter from "./router/projectRoutes.js";
 import deadlineRouter from "./router/deadlineRoutes.js";
 import teacherRouter from "./router/teacherRoutes.js";
+import chatRouter from "./router/chatRoutes.js";
+import announcementRouter from "./router/announcementRoutes.js";
+import searchRouter from "./router/searchRoutes.js";
 import {fileURLToPath} from "url";
 import path from "path";
 import fs from "fs";
@@ -22,7 +25,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({
-    origin: [process.env.FRONTEND_URL],
+    origin: [process.env.FRONTEND_URL || "http://localhost:5173"],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
     })
@@ -44,6 +47,9 @@ app.use("/api/v1/notification", notificationRouter);
 app.use("/api/v1/project", projectRouter);
 app.use("/api/v1/deadline", deadlineRouter);
 app.use("/api/v1/teacher", teacherRouter);
+app.use("/api/v1/chat", chatRouter); // Added usage for chatRoutes
+app.use("/api/v1/announcements", announcementRouter);
+app.use("/api/v1/search", searchRouter);
 
 app.use(errorMiddleware) //at last
 

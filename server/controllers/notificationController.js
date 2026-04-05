@@ -48,9 +48,9 @@ export const getNotifications = asyncHandler(async(req, res, next)=>{
 
 export const markAsRead = asyncHandler(async(req, res, next)=>{
     const {id} = req.params;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
-    const notification = await notificationServices.markAsRead(id, userId);
+    const notification = await notificationServices.markAsRead(id, userId, req.user.role);
     if(!notification){
         return next(new ErrorHandler("Notification not found",404));
     }
@@ -63,7 +63,7 @@ export const markAsRead = asyncHandler(async(req, res, next)=>{
 
 
 export const markAllAsRead = asyncHandler(async(req, res, next)=>{
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     await notificationServices.markAllAsRead(userId);
     
@@ -74,9 +74,9 @@ export const markAllAsRead = asyncHandler(async(req, res, next)=>{
 });
 export const deleteNotification = asyncHandler(async(req, res, next)=>{
     const {id} = req.params;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
-    const notification = await notificationServices.deleteNotification(id, userId);
+    const notification = await notificationServices.deleteNotification(id, userId, req.user.role);
     if(!notification){
         return next(new ErrorHandler("Notification not found",404));
     }

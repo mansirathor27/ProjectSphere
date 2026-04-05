@@ -1,7 +1,7 @@
 import express from 'express'
 import multer from 'multer'
 import { isAuthenticated, isAuthorized } from '../middlewares/authMiddleware.js';
-import { downloadFile, getAvailableSupervisors, getDashboardStats, getFeedback, getStudentProject, getSupervisor, requestSupervisor, submitProposal, uploadFiles } from '../controllers/studentController.js';
+import { downloadFile, getAvailableSupervisors, getDashboardStats, getFeedback, getStudentProject, getSupervisor, requestSupervisor, submitProposal, uploadFiles, searchStudents } from '../controllers/studentController.js';
 import { handleUploadError, upload } from '../middlewares/upload.js';
 
 const router = express.Router();
@@ -18,6 +18,7 @@ router.post("/request-supervisor", isAuthenticated, isAuthorized("Student"), req
 router.get("/feedback/:projectId", isAuthenticated, isAuthorized("Student"), getFeedback);
 router.get("/fetch-dashboard-stats", isAuthenticated, isAuthorized("Student"), getDashboardStats);
 router.get("/download/:projectId/:fileId", isAuthenticated, isAuthorized("Student"), downloadFile);
+router.get("/search-students", isAuthenticated, isAuthorized("Student"), searchStudents);
 
 
 export default router;

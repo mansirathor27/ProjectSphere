@@ -19,7 +19,7 @@ export const createDeadline = asyncHandler(async(req, res, next)=>{
         name, 
         dueDate: new Date(dueDate),
         createdBy: req.user._id,
-        project: project || null,
+        project: project._id,
     };
 
     const deadline = await Deadline.create(deadlineData);
@@ -27,10 +27,29 @@ export const createDeadline = asyncHandler(async(req, res, next)=>{
     ]);
     if(project){
         await Project.findByIdAndUpdate(
-            project,
+            project._id,
             {deadline: dueDate},
             {new: true, runValidators: true}
         );
+
+        // Real-time emission
+        try {
+            const { getSocket } = await import("../socket.js");
+            const io = getSocket();
+            if (io) {
+                // Notify students
+                project.students.forEach(studentId => {
+                    io.to(studentId.toString()).emit("project_updated", { projectId: project._id, deadline: dueDate });
+                    io.to(studentId.toString()).emit("new_notification", { message: `New deadline set for ${project.title}: ${new Date(dueDate).toLocaleDateString()}` });
+                });
+                // Notify supervisor
+                if (project.supervisor) {
+                    io.to(project.supervisor.toString()).emit("project_updated", { projectId: project._id, deadline: dueDate });
+                }
+            }
+        } catch (err) {
+            console.error("Socket emission failed in createDeadline:", err);
+        }
     }
     return res.status(201).json({
         success: true,

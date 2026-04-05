@@ -61,7 +61,16 @@ const userSchema = new mongoose.Schema({
         ref: "Project",
         default: null,
     },
-
+    bio: {
+        type: String,
+        maxLength: [500, "Bio cannot exceed 500 characters"],
+        default: "",
+    },
+    portfolioUrl: {
+        type: String,
+        trim: true,
+        default: "",
+    },
   }, 
   {
     timestamps: true,
