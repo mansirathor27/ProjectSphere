@@ -2,16 +2,29 @@ import { connectDB } from "./config/db.js";
 import app from "./app.js";
 import { initSocket } from "./socket.js";
 
-// Ensure DB is connected before starting the server
-await connectDB();
+let server;
 
-const PORT = process.env.PORT || 4000;
-const server = app.listen(PORT, ()=>{
-    console.log(`Server is running on port ${PORT}`);
-});
+try {
+    console.log("Starting server initialization...");
+    console.log(`Node Environment: ${process.env.NODE_ENV || 'development'}`);
 
-const io = initSocket(server);
-app.set("io", io); // make io accessible in controllers if needed
+    // Ensure DB is connected before starting the server
+    await connectDB();
+    console.log("DB connection established.");
+
+    const PORT = process.env.PORT || 4000;
+    server = app.listen(PORT, ()=>{
+        console.log(`Server is running on port ${PORT}`);
+    });
+
+    const io = initSocket(server);
+    app.set("io", io); 
+    console.log("Socket initialization complete.");
+} catch (error) {
+    console.error("CRITICAL ERROR during server startup:");
+    console.error(error.stack || error.message || error);
+    process.exit(1);
+}
 
 
 process.on("unhandledRejection",(err)=>{

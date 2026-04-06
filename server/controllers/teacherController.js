@@ -118,7 +118,7 @@ export const acceptRequest = asyncHandler(async(req,res, next)=>{
     });
     
     // Emit real-time update
-    const { getSocket } = await import("../lib/socket.js");
+    const { getSocket } = await import("../socket.js");
     const io = getSocket();
     if (io) {
         io.to(request.student._id.toString()).emit("project_updated", {
@@ -161,7 +161,7 @@ export const rejectRequest = asyncHandler(async(req,res, next)=>{
     });
 
     // Emit real-time update
-    const { getSocket } = await import("../lib/socket.js");
+    const { getSocket } = await import("../socket.js");
     const io = getSocket();
     if (io) {
         io.to(request.student._id.toString()).emit("project_updated", {
