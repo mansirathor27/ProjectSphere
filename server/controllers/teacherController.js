@@ -89,6 +89,19 @@ export const getRequests = asyncHandler(async(req,res, next)=>{
 export const acceptRequest = asyncHandler(async(req,res, next)=>{
     const {requestId} = req.params;
     const teacherId = req.user._id;
+
+    // Check if the project is approved by admin first
+    const requestDoc = await SupervisorRequest.findById(requestId)
+        .populate("project")
+        .populate({ path: "student", populate: { path: "project" } });
+        
+    if(!requestDoc) return next(new ErrorHandler("Request not found", 404));
+
+    const project = requestDoc.project || requestDoc.student?.project;
+    if (project && project.status !== "approved") {
+        return next(new ErrorHandler("Project must be approved by an Admin before you can accept the request", 400));
+    }
+
     const request = await requestServices.acceptRequest(requestId, teacherId);
     if(!request) return next(new ErrorHandler("Request not found", 404));
     await notificationServices.notifyUser(
