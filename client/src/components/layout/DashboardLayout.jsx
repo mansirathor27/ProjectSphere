@@ -26,6 +26,14 @@ const DashboardLayout = ({ userRole }) => {
       <AnnouncementBanner />
 
       <div className="flex relative z-10">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-40 lg:hidden transition-all duration-500 animate-in fade-in"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
         <Sidebar
           open={sidebarOpen}
@@ -44,14 +52,6 @@ const DashboardLayout = ({ userRole }) => {
           </div>
         </main>
       </div>
-
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-40 lg:hidden transition-all duration-500 animate-in fade-in"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 };

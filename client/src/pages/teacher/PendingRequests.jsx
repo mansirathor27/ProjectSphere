@@ -149,6 +149,17 @@ const PendingRequests = () => {
                           <FileText size={18} className="text-blue-500" />
                           <span className="text-body-bold tracking-tight">{project?.title || "Untitled Project"}</span>
                         </div>
+                        <div className="flex items-center gap-2 text-xs mt-2">
+                          <span className="text-slate-500">Admin Status:</span>
+                          <span className={`font-semibold ${
+                            projectStatus === "approved" ? "text-green-600" :
+                            projectStatus === "rejected" ? "text-red-600" :
+                            "text-amber-600"
+                          }`}>
+                            {projectStatus === "approved" ? "Approved" :
+                             projectStatus === "rejected" ? "Rejected" : "Pending"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -166,8 +177,13 @@ const PendingRequests = () => {
                         </button>
                         <button
                           onClick={() => handleAccept(req)}
-                          disabled={lm.rejecting || lm.accepting}
-                          className="w-full sm:w-auto px-10 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+                          disabled={lm.rejecting || lm.accepting || projectStatus !== "approved"}
+                          title={projectStatus !== "approved" ? "Project must be approved by an Admin" : ""}
+                          className={`w-full sm:w-auto px-10 py-3 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${
+                            projectStatus !== "approved" 
+                              ? "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed" 
+                              : "bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95"
+                          }`}
                         >
                           <CheckCircle2 size={18} />
                           {lm.accepting ? "Accepting..." : "Accept Request"}

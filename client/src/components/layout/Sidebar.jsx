@@ -66,11 +66,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`fixed left-0 top-20 h-[calc(100vh-6rem)] m-4 glass-effect rounded-[2.5rem] transition-all duration-500 ease-in-out z-30 shadow-premium group/sidebar ${
+        className={`hidden lg:flex flex-col fixed left-0 top-20 h-[calc(100vh-6rem)] m-4 glass-effect rounded-[2.5rem] transition-all duration-500 ease-in-out z-30 shadow-premium group/sidebar ${
           open ? "w-64" : "w-16"
         }`}
       >
-        <div className="flex flex-col h-full overflow-hidden relative">
+        <div className="flex flex-col h-full w-full overflow-hidden relative">
           {/* Sidebar Toggle Button - Floating style */}
           <button
             onClick={() => setOpen(!open)}

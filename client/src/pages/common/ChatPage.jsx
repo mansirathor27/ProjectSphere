@@ -268,7 +268,17 @@ const ChatPage = () => {
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scroll bg-slate-50/30 dark:bg-slate-900/10">
-        {messages.length === 0 ? (
+        {authUser.role === "Student" && (!project || !project.supervisor) ? (
+          <div className="flex h-full flex-col items-center justify-center text-center max-w-md mx-auto">
+            <div className="w-24 h-24 rounded-[2rem] bg-orange-500/10 flex items-center justify-center text-orange-600 mb-6 animate-pulse">
+              <Clock size={48} strokeWidth={1.5} />
+            </div>
+            <h4 className="heading-ld mb-3">Chat Temporarily Unavailable</h4>
+            <p className="text-body text-slate-500 dark:text-slate-400">
+              Your centralized communication channel is currently locked. It will automatically unlock once a supervisor has been officially assigned and has accepted your supervision request.
+            </p>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center max-w-sm mx-auto">
             <div className="w-20 h-20 rounded-3xl bg-blue-600/10 flex items-center justify-center text-blue-600 mb-6 animate-float">
               <MessageSquare size={40} />
@@ -331,22 +341,29 @@ const ChatPage = () => {
 
       {/* Input Area */}
       <div className="p-8 z-10 glass-effect border-t border-slate-200/50 dark:border-slate-800/50 rounded-b-[2.5rem]">
-        <form onSubmit={handleSendMessage} className="bg-white dark:bg-slate-800 rounded-[2rem] p-3 flex gap-4 items-center border border-slate-200/80 dark:border-slate-700/80 shadow-2xl focus-within:ring-4 focus-within:ring-blue-500/5 transition-all">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={handleInputChange}
-            placeholder={isGroup ? "Message group members..." : "Type your message..."}
-            className="flex-1 bg-transparent border-none focus:ring-0 px-4 text-body-bold placeholder:text-slate-400"
-          />
-          <button
-            type="submit"
-            disabled={!newMessage.trim()}
-            className="w-12 h-12 rounded-[1.2rem] bg-blue-600 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-blue-600/30"
-          >
-            <Send size={20} />
-          </button>
-        </form>
+        {authUser.role === "Student" && (!project || !project.supervisor) ? (
+          <div className="bg-slate-100 dark:bg-slate-800 rounded-[2rem] p-4 text-center border border-slate-200/50 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 text-body font-medium flex items-center justify-center gap-2">
+            <Clock size={18} />
+            Awaiting supervisor acceptance to unlock messages
+          </div>
+        ) : (
+          <form onSubmit={handleSendMessage} className="bg-white dark:bg-slate-800 rounded-[2rem] p-3 flex gap-4 items-center border border-slate-200/80 dark:border-slate-700/80 shadow-2xl focus-within:ring-4 focus-within:ring-blue-500/5 transition-all">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={handleInputChange}
+              placeholder={isGroup ? "Message group members..." : "Type your message..."}
+              className="flex-1 bg-transparent border-none focus:ring-0 px-4 text-body-bold placeholder:text-slate-400"
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim()}
+              className="w-12 h-12 rounded-[1.2rem] bg-blue-600 text-white flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-lg shadow-blue-600/30"
+            >
+              <Send size={20} />
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
