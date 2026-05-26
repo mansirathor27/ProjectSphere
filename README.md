@@ -94,7 +94,7 @@ Add admin panel screenshot here
 
 ---
 
-## 🚀 Installation & Setup
+##  Installation & Setup
 
 ### 1️⃣ Clone the Repository
 
