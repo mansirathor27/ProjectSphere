@@ -76,23 +76,6 @@ The application follows a client-server architecture:
 - MongoDB stores application data
 - Socket.io enables real-time communication
 
----
-
-## 📷 Screenshots
-
-### Dashboard
-Add dashboard screenshot here
-
-### Project Submission Page
-Add submission page screenshot here
-
-### Chat System
-Add chat system screenshot here
-
-### Admin Panel
-Add admin panel screenshot here
-
----
 
 ##  Installation & Setup
 
