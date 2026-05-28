@@ -161,7 +161,7 @@ ProjectSphere/
 
 ## 🌟 Future Enhancements
 - Email notification system
-- AI-based project recommendations
+- AI-based project recommendations and suggestions
 - Video meeting integration
 - Analytics dashboard
 - Mobile application support
